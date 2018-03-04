@@ -1,9 +1,11 @@
-package main
+package utils
 
 import (
 	"strconv"
 	"log"
 )
+
+const Inf = int(^uint(0) >> 1)
 
 func checkError(message string, err error) {
 	if err != nil {
@@ -26,4 +28,18 @@ func ConvertIntToStringMatrix(from [][]int, nRow, nCol int) [][]string {
 		}
 	}
 	return to
+}
+
+// return the minimum value and its index from an array  of int
+func FindMin(array []int) (int, int) {
+	min := Inf
+	index := -1
+	for i, v := range array {
+		if v < min {
+			min = v
+			index = i
+		}
+	}
+
+	return index, min
 }
