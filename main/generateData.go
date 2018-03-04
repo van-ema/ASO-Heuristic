@@ -2,7 +2,6 @@ package main
 
 import (
 	"math/rand"
-	"fmt"
 	"time"
 )
 
@@ -25,10 +24,11 @@ func CreateOrderMatrix(nOrder, nMover int) [][]int {
 	for i := 0; i < nOrder+nMover; i++ {
 		for j := 0; j < nOrder; j++ {
 
-			if i == j {
-				m1[i][j] = 0
-			} else {
-				m1[i][j] = NextRandom(0, MAX_DISTANCE)
+			switch {
+				case i==j :
+					m1[i][j] = 0
+				default :
+					m1[i][j] = NextRandom(0, MAX_DISTANCE)
 			}
 		}
 	}
@@ -36,7 +36,7 @@ func CreateOrderMatrix(nOrder, nMover int) [][]int {
 	return m1
 }
 
-func createDeliveryTimeVector(nOrder int) []int {
+func CreateDeliveryTimeVector(nOrder int) []int {
 	v := make([]int, nOrder)
 	for i := 0; i < nOrder; i++ {
 		v[i] = int(rand.NormFloat64()*STD + MEAN)
@@ -49,8 +49,8 @@ func NextRandom(min, max int) int {
 	return rand.Intn(max-min) + min
 }
 
-func main() {
-	fmt.Print(CreateOrderMatrix(ORDER_N, MOVER_N))
-	fmt.Println("\n")
-	fmt.Println(createDeliveryTimeVector(ORDER_N))
-}
+//func main() {
+//	fmt.Print(CreateOrderMatrix(ORDER_N, MOVER_N))
+//	fmt.Println("\n")
+//	fmt.Println(CreateDeliveryTimeVector(ORDER_N))
+//}
