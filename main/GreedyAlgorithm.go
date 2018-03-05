@@ -11,8 +11,6 @@ import (
 const (
 	ORDER_N = 300 // #Orders
 	MOVER_N = 30  // #Movers
-
-	CANCELLED = -1
 )
 
 type Order struct {
@@ -21,78 +19,37 @@ type Order struct {
 	t  int // delivery time
 }
 
+var nOrder int
+var nMover int
+
 // return for each mover a list of orders
-func GreedySolver(nOrder int, nMover int, distances [][]int, deliveryTimes []int) map[int][]*Order {
+func GreedySolver(distances [][]int, deliveryTimes []int) ([][]*Order, int) {
 
 	// alias for D - D* : contains the orders not assigned
 	orders := initOrder(deliveryTimes)
+	// keep the effective length of the list
+	// from position length to the end of the list we can find scheduled orders
 	length := orders.Len()
-	// alias for  D* : contains the orders already assigned
-	assigned := make([]*Order, nOrder)
-	// key: mover ; value: array of orders assigned to him
-	results := make(map[int][]*Order)
 
+	// At the position i we find the schedule for the mover i-th
+	results := make([][]*Order, nMover+1)
+	for i := 0; i < nMover; i++ {
+		results[i] = make([]*Order, 0, int(nOrder/nMover))
+	}
+
+	// keep the total cost of the solution
 	totalCost := 0
 	// Solving for each mover
 	for mover := 0; mover < nMover; mover++ {
 
-		// array of orders assigned to the current mover
-		partition := make([]*Order, 0, int(nOrder/nMover)+1)
-		for i := 0; i < length; i++ {
+		// Orders are never removed from the orders list but they are moved on the back
+		// We use the var length to keep the number of orders not already scheduled
+		// placed at the beginning of the list
+		totalCost += SingleMoverSchedulingOrders(mover, &results[mover], orders, &length, distances)
 
-			var minOrderElem *list.Element
-			minCost := utils.Inf
-			newDeliveryTime := 0
-
-			current := orders.Front()
-			for j := 0; j < length; j++ {
-				order := current.Value.(*Order)
-
-				// Get last order in the list assigned to the mover to compute distance with
-				// the next order
-				// If the mover has no order assigned the distance must be computed
-				// with the mover initial position
-				var lastOrder int
-				var lastDeliveryTime int
-				if len(partition) == 0 {
-					lastOrder = nOrder + mover
-					lastDeliveryTime = 0
-				} else {
-					lastOrder = partition[len(partition)-1].id
-					lastDeliveryTime = partition[len(partition)-1].x
-				}
-
-				newCost, nextDeliveryTime := computeCost(lastOrder, lastDeliveryTime, order, distances)
-				if newCost < minCost {
-					minOrderElem = current
-					minCost = newCost
-					newDeliveryTime = nextDeliveryTime
-				}
-
-				current = current.Next()
-			}
-
-			// schedule not feasible, try with the next mover
-			if minCost == utils.Inf {
-				break
-			}
-
-			// schedule is feasible
-			totalCost += minCost
-			minOrder := minOrderElem.Value.(*Order)
-			minOrder.x = newDeliveryTime
-			partition = append(partition, minOrder)
-			assigned = append(assigned, minOrder)
-			orders.MoveToBack(minOrderElem)
-
-			length--
-			i--
-
-		}
-
-		results[mover] = partition
 	}
 
+	// The orders still in the list are all those that cannot be scheduled
 	var cancelled []*Order
 	e := orders.Front()
 	for k := 0; k < length; k++ {
@@ -100,13 +57,71 @@ func GreedySolver(nOrder int, nMover int, distances [][]int, deliveryTimes []int
 		e = e.Next()
 
 	}
+	results[nMover] = cancelled
 
-	results[CANCELLED] = cancelled
+	return results, totalCost
+}
 
-	return results
+// return a list of orders that can be scheduled by the mover
+func SingleMoverSchedulingOrders(mover int, result *[]*Order, orders *list.List, length *int, distances [][]int) int {
+
+	cost := 0
+	for i := 0; i < *length; i++ {
+
+		var minOrderElem *list.Element
+		minCost := utils.Inf
+		newDeliveryTime := 0
+
+		current := orders.Front()
+		for j := 0; j < *length; j++ {
+			order := current.Value.(*Order)
+
+			// Get last order in the list assigned to the mover to compute distance with
+			// the next order
+			// If the mover has no order assigned the distance must be computed
+			// with the mover initial position
+			var lastOrder int
+			var lastDeliveryTime int
+			if len(*result) == 0 {
+				lastOrder = nOrder + mover
+				lastDeliveryTime = 0
+			} else {
+				lastOrder = (*result)[len(*result)-1].id
+				lastDeliveryTime = (*result)[len(*result)-1].x
+			}
+
+			newCost, nextDeliveryTime := computeCost(lastOrder, lastDeliveryTime, order, distances)
+			if newCost < minCost {
+				minOrderElem = current
+				minCost = newCost
+				newDeliveryTime = nextDeliveryTime
+			}
+
+			current = current.Next()
+		}
+
+		// schedule not feasible, try with the next mover
+		if minCost == utils.Inf {
+			break
+		}
+
+		// schedule is feasible
+		cost += minCost
+		minOrder := minOrderElem.Value.(*Order)
+		minOrder.x = newDeliveryTime
+		*result = append(*result, minOrder)
+		orders.MoveToBack(minOrderElem)
+
+		*length--
+		i--
+	}
+
+	return cost
+
 }
 
 // orders allocation and initialization with delivery times
+// We use linked list because we must frequently remove assigned orders
 func initOrder(deliveryTimes []int) *list.List {
 
 	n := len(deliveryTimes)
@@ -122,6 +137,7 @@ func initOrder(deliveryTimes []int) *list.List {
 	return orderList
 }
 
+// insert an order in the right position to keep the linked list sorted
 func insert(l *list.List, order *Order) {
 	if l.Len() == 0 {
 		l.PushFront(order)
@@ -162,7 +178,7 @@ func computeCost(lastOrderId int, lastDeliveryTime int, nextOrder *Order, distan
 
 }
 
-func printResults(results map[int][]*Order) {
+func printResults(results [][]*Order) {
 	for k := range results {
 		if k >= 0 {
 			fmt.Printf("%s%d : ", "Mover-", k)
@@ -170,21 +186,29 @@ func printResults(results map[int][]*Order) {
 			fmt.Printf("cancelled:")
 		}
 
-		for _, v := range results[k] {
-			fmt.Printf("[id:%d,t:%d,x:%d]", v.id, v.t, v.x)
-		}
+		printArray(results[k])
 
 		fmt.Print("\n")
+	}
+}
 
+func printArray(p []*Order) {
+	for _, v := range p {
+		fmt.Printf("[id:%d,t:%d,x:%d]", v.id, v.t, v.x)
 	}
 }
 
 func main() {
-	m1 := utils.CreateOrderMatrix(ORDER_N, MOVER_N)
-	t := utils.CreateDeliveryTimeVector(ORDER_N)
+	nOrder = ORDER_N
+	nMover = MOVER_N
+
+	distances := utils.CreateOrderMatrix(nOrder, nMover)
+	t := utils.CreateDeliveryTimeVector(nOrder)
+
 	start := time.Now()
-	res := GreedySolver(ORDER_N, MOVER_N, m1, t)
+	res, cost := GreedySolver(distances, t)
 	elapsed := time.Since(start)
-	log.Printf("Solver took %s", elapsed)
 	printResults(res)
+	log.Printf("Solver took %s", elapsed)
+	log.Printf("Total cost: %d", cost)
 }
