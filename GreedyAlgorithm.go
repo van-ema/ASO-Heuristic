@@ -14,8 +14,8 @@ const (
 
 type Order struct {
 	id int // order's id
-	x  int // deprecated
-	t  int // delivery time
+	x  int // delivery time
+	t  int // target delivery time
 }
 
 var nOrder int
@@ -81,9 +81,9 @@ func SingleMoverSchedulingOrders(mover int, y [][]uint8, x []int, z, z1, z2 []ui
 
 	for i := 0; i < *length; i++ {
 
-		var minOrderElem *list.Element	// order that minimize the cost
-		minCost := utils.Inf			// keep the cost of the favourable order
-		newDeliveryTime := 0			// keep the delivery time of the last scheduled order
+		var minOrderElem *list.Element // order that minimize the cost
+		minCost := utils.Inf           // keep the cost of the favourable order
+		newDeliveryTime := 0           // keep the delivery time of the last scheduled order
 
 		current := orders.Front()
 		for j := 0; j < *length; j++ {
@@ -109,16 +109,14 @@ func SingleMoverSchedulingOrders(mover int, y [][]uint8, x []int, z, z1, z2 []ui
 		minOrder := minOrderElem.Value.(*Order)
 
 		// Update results
-		switch minCost {
-		case 1:
+		if minCost == 1 {
 			z[minOrder.id] = 1
-		case 2:
+		} else if minCost == 2 {
 			z1[minOrder.id] = 1
-		case 3:
+		} else if minCost == 3 {
 			z2[minOrder.id] = 1
-		default:
-			z[minOrder.id] = 0
 		}
+
 		x[minOrder.id] = newDeliveryTime
 		y[lastOrder.id][minOrder.id] = 1
 		// Remove order from list of orders to schedule
@@ -217,7 +215,21 @@ func printArray(p []*Order) {
 
 // return for each mover a list of orders that he can schedule
 // For each order it find the mover that minimize the cost
-func BaseSolver() ([][]*Order, int) {
+func BaseSolver(totalCost *int) ([][]uint8, []int, []uint8, []uint8, []uint8, []uint8) {
+
+	nRow := nMover + nOrder
+	nCol := nOrder
+	y := make([][]uint8, nRow)
+	for i := 0; i < nRow; i++ {
+		y[i] = make([]uint8, nCol)
+	}
+
+	x := make([]int, nOrder)
+	w := make([]uint8, nOrder)
+
+	z := make([]uint8, nOrder)
+	z1 := make([]uint8, nOrder)
+	z2 := make([]uint8, nOrder)
 
 	// alias for D - D* : contains the orders not assigned
 	orders := initOrder(deliveryTimes)
@@ -225,79 +237,81 @@ func BaseSolver() ([][]*Order, int) {
 	// from position length to the end of the list we can find scheduled orders
 	length := orders.Len()
 
-	// At the position i we find the schedule for the mover i-th
-	results := make([][]*Order, nMover+1)
-	for i := 0; i < nMover; i++ {
-		results[i] = make([]*Order, 0, int(nOrder/nMover))
-	}
-
 	// keep the total cost of the solution
-	totalCost := 0
-	for i := 0; i < length; i++ {
-		e := orders.Front()
-		order := e.Value.(*Order)
-		moverId, cost, x := findBestMover(order, results, distances)
-
-		if moverId >= 0 {
-			order.x = x
-			results[moverId] = append(results[moverId], order)
-			totalCost += cost
-
-			orders.MoveToBack(e)
-			length--
-			i--
-		}
-
-		e = e.Next()
+	*totalCost = 0
+	// Keep for each mover the last order assigned to him
+	lastOrders := make([]*Order, nMover)
+	for i := 0; i < nMover; i++ {
+		lastOrders[i] = new(Order)
+		lastOrders[i].id = nOrder + i
 	}
 
-	var cancelled []*Order
 	e := orders.Front()
 	for i := 0; i < length; i++ {
-		totalCost += 10
-		cancelled = append(cancelled, e.Value.(*Order))
-		e.Next()
+		order := e.Value.(*Order)
+
+		// Try to assign the order to a mover
+		moverId, cost := schedule(order, lastOrders, y, x, w)
+		*totalCost += cost
+
+		// If assignment successes
+		if moverId >= 0 {
+			e = e.Next()
+			orders.MoveToBack(e.Prev())
+			length--
+			i--
+
+			// Update results
+			if cost == 1 {
+				z[order.id] = 1
+			} else if cost == 2 {
+				z1[order.id] = 1
+			} else if cost == 3 {
+				z2[order.id] = 1
+			}
+		} else {
+			e = e.Next()
+		}
 	}
 
-	results[nMover] = cancelled
-
-	return results, totalCost
+	return y, x, w, z, z1, z2
 
 }
 
-func findBestMover(order *Order, results [][]*Order, dist [][]int, ) (int, int, int) {
+func schedule(order *Order, lastOrders []*Order, y [][]uint8, x []int, w []uint8, ) (int, int) {
 
 	minCost := utils.Inf
 	bestMover := -1
 	bestDeliveryTime := 0
+
+	// Find best mover
 	for mover := 0; mover < nMover; mover++ {
 
-		res := results[mover]
-		var lastOrder int
-		var lastDeliveryTime int
-		if len(res) == 0 {
-			lastOrder = nOrder + mover
-			lastDeliveryTime = 0
-		} else {
-			lastOrder = results[mover][len(res)-1].id
-			lastDeliveryTime = results[mover][len(res)-1].x
-		}
-
-		cost, x := computeCost(lastOrder, lastDeliveryTime, order)
+		cost, deliveryTime := computeCost(lastOrders[mover].id, lastOrders[mover].x, order)
 		if cost < minCost {
 			minCost = cost
 			bestMover = mover
-			bestDeliveryTime = x
+			bestDeliveryTime = deliveryTime
 		}
 	}
 
-	return bestMover, minCost, bestDeliveryTime
+	if bestMover != -1 {
+		x[order.id] = bestDeliveryTime
+		y[lastOrders[bestMover].id][order.id] = 1
 
+		order.x = bestDeliveryTime
+		lastOrders[bestMover] = order
+	} else {
+		w[order.id] = 1
+		minCost = 10
+	}
+
+	return bestMover, minCost
 }
 
 func main() {
-	nOrder = 10
-	nMover = 2
+	nOrder = ORDER_N
+	nMover = MOVER_N
 
 	distances = utils.CreateOrderMatrix(nOrder, nMover)
 	deliveryTimes = utils.CreateDeliveryTimeVector(nOrder)
@@ -317,12 +331,17 @@ func main() {
 	fmt.Printf("Solver took %s\n", elapsed)
 	fmt.Printf("Total cost: %d\n", cost)
 
-	//fmt.Print("\n\nAlgorithm 2:\n")
-	//start = time.Now()
-	//res1, cost1 := BaseSolver()
-	//elapsed = time.Since(start)
-	////printResults(res1)
-	//fmt.Printf("Solver took %s\n", elapsed)
-	//fmt.Printf("Total cost: %d\n", cost1)
+	fmt.Print("\n\nAlgorithm 2:\n")
+	start = time.Now()
+	y, x, w, z, z1, z2 = BaseSolver(&cost)
+	elapsed = time.Since(start)
+	//printResults(res)
+
+	utils.PrintAssigmentMatrix(y, nOrder)
+	fmt.Println(x)
+	fmt.Println(w)
+	fmt.Println(z, z1, z2)
+	fmt.Printf("Solver took %s\n", elapsed)
+	fmt.Printf("Total cost: %d\n", cost)
 
 }
