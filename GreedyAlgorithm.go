@@ -20,13 +20,23 @@ type Order struct {
 }
 
 type Distances [][]int
+type DeliveryTimeVector []int
 
 
 var nOrder int
 var nMover int
 
 var distances [][]int
-var deliveryTimes []int
+var deliveryTimes DeliveryTimeVector
+
+
+/* orderIndexToName[order index] = alphanumeric ID (given in CSV files) */
+var orderIndexToName map[int]string
+/* moverIndexToName[mover index] = alphanumeric ID (given in CSV files);
+ * mover index starts from 0 to |M| while in the matrix it starts at
+ * ORDER_N
+ */
+var moverIndexToName map[int]string
 
 // return for each mover a list of orders
 func GreedySolver(totalCost *int) ([][]uint8, []int, []uint8, []uint8, []uint8, []uint8) {
@@ -300,11 +310,13 @@ func findBestMover(order *Order, results [][]*Order, dist [][]int, ) (int, int, 
 }
 
 func main() {
-	nOrder = 10
-	nMover = 2
+	nOrder = ORDER_N
+	nMover = MOVER_N
 
+	/*
 	distances = utils.CreateOrderMatrix(nOrder, nMover)
-	deliveryTimes = utils.CreateDeliveryTimeVector(nOrder)
+	deliveryTimes = utils.CreateDeliveryTimeVector(nOrder) */
+	distances, deliveryTimes = getInput()
 
 	utils.PrintDistanceMatrix(distances, nOrder)
 	fmt.Print("Algorithm 1:\n")
@@ -329,17 +341,51 @@ func main() {
 	//fmt.Printf("Solver took %s\n", elapsed)
 	//fmt.Printf("Total cost: %d\n", cost1)
 
+}
 
 
-	var mat Distances = make(Distances,1)
-	print(len(mat))
+func getInput() (distMat Distances,deliveryTime DeliveryTimeVector) {
+	/* init */
+	distMat = make(Distances, ORDER_N + MOVER_N )
+	deliveryTime = make(DeliveryTimeVector, ORDER_N)
+	orderIndexToName = make(map[int]string)
+	moverIndexToName = make(map[int]string)
 
-	//ord := utils.ReadOrdersTargetTime()
-	utils.ReadDistanceMatrix(ORDER_N)
-	/*for k,v := range utils.ReadDistanceMatrix() {
-		fmt.Printf("Key %s , Value: %d\n", k,v)
+	/* read from file */
+	orderOrderDisMat, moverOrderDistMat := utils.ReadDistanceMatrix(ORDER_N)
+	deliveryTimesMap := utils.ReadOrdersTargetTime()
+
+	for orderKey, distVector := range orderOrderDisMat {
+		distMat[orderKey.I] = make([]int, ORDER_N)
+
+		/* update additional order info */
+		orderIndexToName[orderKey.I] = orderKey.N
+		deliveryTime[orderKey.I] = deliveryTimesMap[orderKey.N]
+
+		for j,distance := range distVector {
+			distMat[orderKey.I][j] = distance
+		}
+
+	}
+
+	for moverKey, distVector := range moverOrderDistMat {
+		distMat[ORDER_N + moverKey.I] = make([]int, ORDER_N)
+
+		/* update additional mover info */
+		moverIndexToName[moverKey.I] = moverKey.N
+		for j, distance := range distVector {
+			distMat[ORDER_N + moverKey.I][j] = distance
+		}
+	}
+
+	/*
+	for i,e := range distMat {
+		fmt.Printf("index = %d, vector : %d\n",i, e)
+	}
+
+	for k,v := range moverIndexToName {
+		fmt.Printf("index = %d, order name : %s\n",k, v)
 	} */
 
-	//fmt.Printf("%s\n", ord[1][1])
-
+	return distMat, deliveryTime
 }

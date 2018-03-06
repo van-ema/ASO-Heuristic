@@ -97,8 +97,8 @@ func readInputFile(filename string) [][]string {
 
 /* helps maintaining (index, ID) of order */
 type S struct {
-	i int
-	n string
+	I int
+	N string
 }
 
 /**
@@ -107,7 +107,7 @@ type S struct {
  * 					to every other order
  */
 type DistMatrix map[S][]int
-
+type TargetTimeVector map[string]int
 
 /**
  * n = # orders
@@ -128,16 +128,16 @@ func ReadDistanceMatrix(n int) (ordOrd DistMatrix, movOrd DistMatrix) {
 	}
 
 	for k, v := range movOrd {
-		fmt.Printf("Key: %d,%s Value: %d\n ", k.i, k.n, v[0])
+		fmt.Printf("Key: %d,%s Value: %d\n ", k.I, k.N, v[0])
 	}
 
 	return ordOrd, movOrd
 
 }
 
-func ReadOrdersTargetTime() map[string]int {
+func ReadOrdersTargetTime() TargetTimeVector {
 
-	data := make(map[string]int)
+	data := make(TargetTimeVector)
 	delTime := readInputFile(deliveryTimeFilename)
 
 	for i, v := range delTime {
