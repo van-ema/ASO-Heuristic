@@ -1,7 +1,7 @@
 package main
 
 import (
-	"orderSchedulingAlgorithm/main/utils"
+	"orderSchedulingAlgorithm/utils"
 	"fmt"
 	"container/list"
 	"time"
