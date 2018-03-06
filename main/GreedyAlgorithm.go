@@ -180,7 +180,7 @@ func computeCost(lastOrderId int, lastDeliveryTime int, nextOrder *Order, distan
 
 func printResults(results [][]*Order) {
 	for k := range results {
-		if k >= 0 {
+		if k != len(results)-1 {
 			fmt.Printf("%s%d : ", "Mover-", k)
 		} else {
 			fmt.Printf("cancelled:")
@@ -199,8 +199,8 @@ func printArray(p []*Order) {
 }
 
 func main() {
-	nOrder = ORDER_N
-	nMover = MOVER_N
+	nOrder = 10
+	nMover = 2
 
 	distances := utils.CreateOrderMatrix(nOrder, nMover)
 	t := utils.CreateDeliveryTimeVector(nOrder)
@@ -208,7 +208,9 @@ func main() {
 	start := time.Now()
 	res, cost := GreedySolver(distances, t)
 	elapsed := time.Since(start)
-	printResults(res)
+	//printResults(res)
+
 	log.Printf("Solver took %s", elapsed)
 	log.Printf("Total cost: %d", cost)
+	log.Printf("%d cancelled orders", len(res[nMover]))
 }
