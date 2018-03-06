@@ -22,9 +22,9 @@ func ConvertIntToStringMatrix(from [][]int, nRow, nCol int) [][]string {
 
 	var to = make([][]string, nRow)
 
-	for i := 0; i < nRow;i++ {
+	for i := 0; i < nRow; i++ {
 		to[i] = make([]string, nCol)
-		for j:=0; j < nCol; j++ {
+		for j := 0; j < nCol; j++ {
 			to[i][j] = strconv.Itoa(from[i][j])
 		}
 	}
@@ -34,7 +34,7 @@ func ConvertIntToStringMatrix(from [][]int, nRow, nCol int) [][]string {
 /**
  * n = # of orders
  */
-func PrintDistanceMatrix(mat [][]int, n int){
+func PrintDistanceMatrix(mat [][]int, n int) {
 
 	fmt.Printf("        |")
 
@@ -42,14 +42,14 @@ func PrintDistanceMatrix(mat [][]int, n int){
 		fmt.Printf(" Order %d|", k)
 	} */
 
-	for i := 0; i < len(mat) ; i ++ {
+	for i := 0; i < len(mat); i ++ {
 
 		if i < n {
 			fmt.Printf("\nOrder %d |", i)
 		} else {
-			fmt.Printf("\nMover %d |", i - n)
+			fmt.Printf("\nMover %d |", i-n)
 		}
-		for j := 0; j < n ; j++ {
+		for j := 0; j < n; j++ {
 			fmt.Printf("  Order %d:  %d    ", j, mat[i][j])
 
 		}
@@ -58,7 +58,6 @@ func PrintDistanceMatrix(mat [][]int, n int){
 	fmt.Printf("\n")
 	fmt.Printf("\n")
 }
-
 
 // return the minimum value and its index from an array  of int
 func FindMin(array []int) (int, int) {
@@ -72,4 +71,22 @@ func FindMin(array []int) (int, int) {
 	}
 
 	return index, min
+}
+
+func PrintAssigmentMatrix(mat [][]uint8, n int, ) {
+	for i := 0; i < len(mat); i ++ {
+
+		if i < n {
+			fmt.Printf("\nOrder %d |", i)
+		} else {
+			fmt.Printf("\nMover %d |", i-n)
+		}
+		for j := 0; j < n; j++ {
+			fmt.Printf("  Order %d:  %d    ", j, mat[i][j])
+
+		}
+	}
+
+	fmt.Printf("\n")
+	fmt.Printf("\n")
 }
