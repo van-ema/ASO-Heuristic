@@ -13,10 +13,14 @@ const (
 )
 
 type Order struct {
-	id int // order's id
-	x  int // delivery time
-	t  int // target delivery time
+	id int 		// order's id
+	name string // alphanumeric name
+	x  int 		// target delivery time
+	t  int 		// delivery time
 }
+
+type Distances [][]int
+
 
 var nOrder int
 var nMover int
@@ -343,5 +347,18 @@ func main() {
 	fmt.Println(z, z1, z2)
 	fmt.Printf("Solver took %s\n", elapsed)
 	fmt.Printf("Total cost: %d\n", cost)
+
+
+
+	var mat Distances = make(Distances,1)
+	print(len(mat))
+
+	//ord := utils.ReadOrdersTargetTime()
+	utils.ReadDistanceMatrix(ORDER_N)
+	/*for k,v := range utils.ReadDistanceMatrix() {
+		fmt.Printf("Key %s , Value: %d\n", k,v)
+	} */
+
+	//fmt.Printf("%s\n", ord[1][1])
 
 }

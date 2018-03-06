@@ -7,6 +7,11 @@ import (
 	"io"
 )
 
+const (
+	deliveryTimeFilename = "input/deliveryTime_ist3.csv"
+	distanceMatrixFilename = "input/distanceMatrix_ist3.csv")
+
+
 func saveToFile(file *os.File, orders[][]string) int {
 
 	w := csv.NewWriter(file)
@@ -37,6 +42,7 @@ func loadFromFile(file *os.File) [][]string {
 		checkError("Error reading file.", err)
 		read = append(read, res)
 		i++
+		fmt.Printf("%s\n",res[0])
 	}
 	return read
 }
@@ -81,17 +87,66 @@ func CreateInputFile(filename string) {
 	closeFile(file)
 }
 
-func ReadInputFile(filename string) [][]string {
+func readInputFile(filename string) [][]string {
 
 	file := openFileToRead(filename)
-
 	orders := loadFromFile(file)
-
 	closeFile(file)
-
-	fmt.Println(orders)
-
 	return orders
+}
+
+/* helps maintaining (index, ID) of order */
+type S struct {
+	i int
+	n string
+}
+
+/**
+ * map with key = (order_index, order_name)
+ * 			value = slice with distance from current order
+ * 					to every other order
+ */
+type DistMatrix map[S][]int
+
+
+/**
+ * n = # orders
+ */
+func ReadDistanceMatrix(n int) (ordOrd DistMatrix, movOrd DistMatrix) {
+
+	ordOrd = make(DistMatrix)
+	movOrd = make(DistMatrix)
+	mat := readInputFile(distanceMatrixFilename)
+
+	for i, v := range mat {
+		if i == 0 { continue }
+		if i <= n { 	/* order */
+			ordOrd[S{i - 1, v[0]}] = strArrToIntArr(v[1:])
+		} else {
+			movOrd[S{i - n - 1, v[0]}] = strArrToIntArr(v[1:])
+		}
+	}
+
+	for k, v := range movOrd {
+		fmt.Printf("Key: %d,%s Value: %d\n ", k.i, k.n, v[0])
+	}
+
+	return ordOrd, movOrd
+
+}
+
+func ReadOrdersTargetTime() map[string]int {
+
+	data := make(map[string]int)
+	delTime := readInputFile(deliveryTimeFilename)
+
+	for i, v := range delTime {
+		if i == 0 { continue }
+		data[v[0]] = strToInt(v[1])
+	}
+
+	return data
+	
 }
 
 /**
