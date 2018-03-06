@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"container/list"
 	"time"
-	"log"
 )
 
 const (
-	ORDER_N = 300 // #Orders
-	MOVER_N = 30  // #Movers
+	ORDER_N = 205 // #Orders
+	MOVER_N = 38  // #Movers
 )
 
 type Order struct {
@@ -32,7 +31,7 @@ func GreedySolver(distances [][]int, deliveryTimes []int) ([][]*Order, int) {
 	length := orders.Len()
 
 	// At the position i we find the schedule for the mover i-th
-	results := make([][]*Order, nMover+1)
+	results := make([][]*Order, nMover + 1)
 	for i := 0; i < nMover; i++ {
 		results[i] = make([]*Order, 0, int(nOrder/nMover))
 	}
@@ -180,10 +179,15 @@ func computeCost(lastOrderId int, lastDeliveryTime int, nextOrder *Order, distan
 
 func printResults(results [][]*Order) {
 	for k := range results {
-		if k >= 0 {
+		/*if k >= 0 {
 			fmt.Printf("%s%d : ", "Mover-", k)
 		} else {
 			fmt.Printf("cancelled:")
+		} */
+		if k == len(results) - 1 { /* */
+			fmt.Printf("cancelled:")
+		} else {
+			fmt.Printf("%s%d : ", "Mover-", k)
 		}
 
 		printArray(results[k])
@@ -194,7 +198,7 @@ func printResults(results [][]*Order) {
 
 func printArray(p []*Order) {
 	for _, v := range p {
-		fmt.Printf("[id:%d,t:%d,x:%d]", v.id, v.t, v.x)
+		fmt.Printf("[id:%d,x:%d,t:%d]", v.id, v.x, v.t)
 	}
 }
 
@@ -205,10 +209,11 @@ func main() {
 	distances := utils.CreateOrderMatrix(nOrder, nMover)
 	t := utils.CreateDeliveryTimeVector(nOrder)
 
+	utils.PrintDistanceMatrix(distances, nOrder)
 	start := time.Now()
 	res, cost := GreedySolver(distances, t)
 	elapsed := time.Since(start)
 	printResults(res)
-	log.Printf("Solver took %s", elapsed)
-	log.Printf("Total cost: %d", cost)
+	fmt.Printf("Solver took %s", elapsed)
+	fmt.Printf("Total cost: %d", cost)
 }

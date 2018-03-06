@@ -3,6 +3,7 @@ package utils
 import (
 	"strconv"
 	"log"
+	"fmt"
 )
 
 const Inf = int(^uint(0) >> 1)
@@ -29,6 +30,35 @@ func ConvertIntToStringMatrix(from [][]int, nRow, nCol int) [][]string {
 	}
 	return to
 }
+
+/**
+ * n = # of orders
+ */
+func PrintDistanceMatrix(mat [][]int, n int){
+
+	fmt.Printf("        |")
+
+	/*for k := 0; k < n; k++ {
+		fmt.Printf(" Order %d|", k)
+	} */
+
+	for i := 0; i < len(mat) ; i ++ {
+
+		if i < n {
+			fmt.Printf("\nOrder %d |", i)
+		} else {
+			fmt.Printf("\nMover %d |", i - n)
+		}
+		for j := 0; j < n ; j++ {
+			fmt.Printf("  Order %d:  %d    ", j, mat[i][j])
+
+		}
+	}
+
+	fmt.Printf("\n")
+	fmt.Printf("\n")
+}
+
 
 // return the minimum value and its index from an array  of int
 func FindMin(array []int) (int, int) {
