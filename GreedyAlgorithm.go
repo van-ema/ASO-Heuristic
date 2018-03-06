@@ -78,19 +78,18 @@ func SingleMoverSchedulingOrders(mover int, y [][]uint8, x []int, z, z1, z2 []ui
 	cost := 0
 	var lastOrder = new(Order)
 	lastOrder.id = nOrder + mover
-	lastOrder.t = 0
 
 	for i := 0; i < *length; i++ {
 
-		var minOrderElem *list.Element
-		minCost := utils.Inf
-		newDeliveryTime := 0
+		var minOrderElem *list.Element	// order that minimize the cost
+		minCost := utils.Inf			// keep the cost of the favourable order
+		newDeliveryTime := 0			// keep the delivery time of the last scheduled order
 
 		current := orders.Front()
 		for j := 0; j < *length; j++ {
 			order := current.Value.(*Order)
 
-			newCost, nextDeliveryTime := computeCost(lastOrder.id, lastOrder.t, order)
+			newCost, nextDeliveryTime := computeCost(lastOrder.id, newDeliveryTime, order)
 			if newCost < minCost {
 				minOrderElem = current
 				minCost = newCost
@@ -309,6 +308,7 @@ func main() {
 	var cost int
 	y, x, w, z, z1, z2 := GreedySolver(&cost)
 	elapsed := time.Since(start)
+	//printResults(res)
 
 	utils.PrintAssigmentMatrix(y, nOrder)
 	fmt.Println(x)
