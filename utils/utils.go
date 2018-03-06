@@ -6,12 +6,31 @@ import (
 	"fmt"
 )
 
+
 const Inf = int(^uint(0) >> 1)
 
 func checkError(message string, err error) {
 	if err != nil {
 		log.Fatal(message, err)
 	}
+}
+
+func strArrToIntArr(v []string) []int {
+	l := len(v)
+	intArr := make([]int,l)
+	for i, val := range v {
+		intArr[i] = strToInt(val)
+	}
+	return intArr
+}
+
+func strToInt(s string) int {
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		log.Fatal(err)
+		return -1
+	}
+	return i
 }
 
 /**
