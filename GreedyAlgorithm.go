@@ -31,7 +31,7 @@ func GreedySolver(distances [][]int, deliveryTimes []int) ([][]*Order, int) {
 	length := orders.Len()
 
 	// At the position i we find the schedule for the mover i-th
-	results := make([][]*Order, nMover + 1)
+	results := make([][]*Order, nMover+1)
 	for i := 0; i < nMover; i++ {
 		results[i] = make([]*Order, 0, int(nOrder/nMover))
 	}
@@ -52,6 +52,7 @@ func GreedySolver(distances [][]int, deliveryTimes []int) ([][]*Order, int) {
 	var cancelled []*Order
 	e := orders.Front()
 	for k := 0; k < length; k++ {
+		totalCost += 10
 		cancelled = append(cancelled, e.Value.(*Order))
 		e = e.Next()
 
@@ -184,7 +185,7 @@ func printResults(results [][]*Order) {
 		} else {
 			fmt.Printf("cancelled:")
 		} */
-		if k == len(results) - 1 { /* */
+		if k == len(results)-1 { /* */
 			fmt.Printf("cancelled:")
 		} else {
 			fmt.Printf("%s%d : ", "Mover-", k)
@@ -202,6 +203,86 @@ func printArray(p []*Order) {
 	}
 }
 
+// return for each mover a list of orders that he can schedule
+// For each order it find the mover that minimize the cost
+func BaseSolver(distances [][]int, deliveryTimes []int) ([][]*Order, int) {
+
+	// alias for D - D* : contains the orders not assigned
+	orders := initOrder(deliveryTimes)
+	// keep the effective length of the list
+	// from position length to the end of the list we can find scheduled orders
+	length := orders.Len()
+
+	// At the position i we find the schedule for the mover i-th
+	results := make([][]*Order, nMover+1)
+	for i := 0; i < nMover; i++ {
+		results[i] = make([]*Order, 0, int(nOrder/nMover))
+	}
+
+	// keep the total cost of the solution
+	totalCost := 0
+	for i := 0; i < length; i++ {
+		e := orders.Front()
+		order := e.Value.(*Order)
+		moverId, cost, x := findBestMover(order, results, distances)
+
+		if moverId >= 0 {
+			order.x = x
+			results[moverId] = append(results[moverId], order)
+			totalCost += cost
+
+			orders.MoveToBack(e)
+			length--
+			i--
+		}
+
+		e = e.Next()
+	}
+
+	var cancelled []*Order
+	e := orders.Front()
+	for i := 0; i < length; i++ {
+		totalCost += 10
+		cancelled = append(cancelled, e.Value.(*Order))
+		e.Next()
+	}
+
+	results[nMover] = cancelled
+
+	return results, totalCost
+
+}
+
+func findBestMover(order *Order, results [][]*Order, dist [][]int, ) (int, int, int) {
+
+	minCost := utils.Inf
+	bestMover := -1
+	bestDeliveryTime := 0
+	for mover := 0; mover < nMover; mover++ {
+
+		res := results[mover]
+		var lastOrder int
+		var lastDeliveryTime int
+		if len(res) == 0 {
+			lastOrder = nOrder + mover
+			lastDeliveryTime = 0
+		} else {
+			lastOrder = results[mover][len(res)-1].id
+			lastDeliveryTime = results[mover][len(res)-1].x
+		}
+
+		cost, x := computeCost(lastOrder, lastDeliveryTime, order, dist)
+		if cost < minCost {
+			minCost = cost
+			bestMover = mover
+			bestDeliveryTime = x
+		}
+	}
+
+	return bestMover, minCost, bestDeliveryTime
+
+}
+
 func main() {
 	nOrder = ORDER_N
 	nMover = MOVER_N
@@ -210,10 +291,20 @@ func main() {
 	t := utils.CreateDeliveryTimeVector(nOrder)
 
 	utils.PrintDistanceMatrix(distances, nOrder)
+	fmt.Print("Algorithm 1:\n")
 	start := time.Now()
 	res, cost := GreedySolver(distances, t)
 	elapsed := time.Since(start)
 	printResults(res)
-	fmt.Printf("Solver took %s", elapsed)
-	fmt.Printf("Total cost: %d", cost)
+	fmt.Printf("Solver took %s\n", elapsed)
+	fmt.Printf("Total cost: %d\n", cost)
+
+	fmt.Print("\n\nAlgorithm 2:\n")
+	start = time.Now()
+	res, cost = BaseSolver(distances, t)
+	elapsed = time.Since(start)
+	printResults(res)
+	fmt.Printf("Solver took %s\n", elapsed)
+	fmt.Printf("Total cost: %d\n", cost)
+
 }
