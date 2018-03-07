@@ -36,63 +36,61 @@ var orderIndexToName map[int]string
  */
 var moverIndexToName map[int]string
 
-// n: number of orders
-// m: number of mover
-func GreedySolver(n int, m int, totalCost *int) ([][]uint8, []int, []uint8, []uint8, []uint8, []uint8) {
+func GreedySolver(totalCost *int) ([][]uint8, []int, []uint8, []uint8, []uint8, []uint8) {
 
-	nRow := n + m
-	nCol := n
-	y := make([][]uint8, nRow)
-	for i := 0; i < nRow; i++ {
-		y[i] = make([]uint8, nCol)
+	y := make([][]uint8, nOrder+nMover)
+	for i := 0; i < nOrder+nMover; i++ {
+		y[i] = make([]uint8, nOrder)
 	}
 
-	x := make([]int, n)
-	w := make([]uint8, n)
+	x := make([]int, nOrder)
+	w := make([]uint8, nOrder)
 
-	z := make([]uint8, n)
-	z1 := make([]uint8, n)
-	z2 := make([]uint8, n)
+	z := make([]uint8, nOrder)
+	z1 := make([]uint8, nOrder)
+	z2 := make([]uint8, nOrder)
 
 	orders := initOrder(deliveryTimes, nOrder)
 
-	// keep the total cost of the solution
-	*totalCost = 0
+	*totalCost = 0  // keep the total cost of the solution
+	nAssigned := 0  // number of orders assigned
+	nCancelled := 0 // number of cancelled orders
+
 	// Each partition is a list of the orders assigned to the mover
 	orderPartitions := make([]*list.List, nMover)
 	for i := 0; i < nMover; i++ {
-		orderPartitions[i] = new(list.List)
+		orderPartitions[i] = list.New()
 	}
 	// list of cancelled orders
-	cancelled := new(list.List)
+	cancelled := list.New()
 
 	// Phase-1: find an assignment of orders to the movers
 	toSchedule := orders.Front()
-	for h := 1; h <= n; h++ {
-
+	for h := 0; h < nOrder; h++ {
 		minCost := utils.Inf
 		bestMover := -1
 		for mover := 0; mover < nMover; mover++ {
 
 			// add temporary the order to schedule to the partition of the current mover
-			orderPartitions[mover].PushFront(toSchedule.Value.(*Order))
-
-			cost := SingleMoverSchedulingOrders(mover, orderPartitions[mover])
-			if minCost < cost {
+			// The output variable are set to zero because this is just a temporary partition
+			// Real output variable are computed in phase-2
+			cost := SingleMoverSchedulingOrders(mover, orderPartitions[mover], toSchedule, nil, nil, nil, nil, nil)
+			if cost < minCost {
+				minCost = cost
 				bestMover = mover
 			}
-
-			orderPartitions[mover].Remove(toSchedule)
 		}
 
-		toScheduleOrder := toSchedule.Value.(*Order)
 		// The schedule is feasible for bestMover
 		if bestMover != -1 {
-			orderPartitions[bestMover].PushFront(toSchedule)
+			insert(orderPartitions[bestMover], toSchedule.Value.(*Order))
+			nAssigned++
+
 		} else {
 			cancelled.PushFront(toSchedule)
 			*totalCost += 10
-			w[toScheduleOrder.id] = 1
+			w[toSchedule.Value.(*Order).id] = 1
+			nCancelled++
 		}
 
 		toSchedule = toSchedule.Next()
@@ -100,54 +98,82 @@ func GreedySolver(n int, m int, totalCost *int) ([][]uint8, []int, []uint8, []ui
 
 	// Phase-2 : Re-compute final schedule for each mover and update output structures
 	for mover := 0; mover < nMover; mover++ {
-
-		partition := orderPartitions[mover]
-		cost := SingleMoverSchedulingOrders(mover, orderPartitions[mover])
-		*totalCost += cost
-
-		e := partition.Front()
-		prev := e
-		y[nOrder+mover][e.Value.(*Order).id] = 1
-		for ; e != nil; e = e.Next() {
-			order := e.Value.(*Order)
-			x[order.id] = order.x
-			y[prev.Value.(*Order).id][e.Value.(*Order).id] = 1
-			prev.Next()
-		}
+		cost := SingleMoverSchedulingOrders(mover, orderPartitions[mover], nil, y, x, z, z1, z2)
+		*totalCost += cost // cost cannot be inf because we know the partition can be scheduled
 	}
 
+	fmt.Printf("assigned: %d ; cancelled: %d\n", nAssigned, nCancelled)
 	return y, x, w, z, z1, z2
 }
 
 // return the cost to schedule orders in the list
-func SingleMoverSchedulingOrders(mover int, orders *list.List) int {
+func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *list.Element, y [][]uint8, x []int, z, z1, z2 []uint8) int {
 
 	cost := 0
+
+	// keep the last assigned order
 	var lastOrder = new(Order)
+	lastOrder.x = 0
 	lastOrder.id = nOrder + mover
 
 	length := orders.Len()
-	for i := 0; i < length; i++ {
+	iteration := length
+	if newOrderElem != nil {
+		iteration += 1
+	}
+
+	for i := 0; i < iteration; i++ {
 
 		var minOrderElem *list.Element // order that minimize the cost
 		minCost := utils.Inf           // keep the cost of the favourable order
-		newDeliveryTime := 0           // keep the delivery time of the last scheduled order
+		bestDeliveryTime := 0
 
 		current := orders.Front()
 		for j := 0; j < length; j++ {
 			order := current.Value.(*Order)
 
-			newCost, nextDeliveryTime := computeCost(lastOrder.id, newDeliveryTime, order)
+			newCost, nextDeliveryTime := computeCost(lastOrder.id, lastOrder.x, order)
+
+			// If costs are equals we choose the order with the lower id
 			if newCost < minCost {
+
 				minOrderElem = current
 				minCost = newCost
-				newDeliveryTime = nextDeliveryTime
+				bestDeliveryTime = nextDeliveryTime
+
+			} else if newCost == minCost && minOrderElem != nil {
+
+				if order.id < minOrderElem.Value.(*Order).id {
+					minOrderElem = current
+					minCost = newCost
+					bestDeliveryTime = nextDeliveryTime
+				}
 			}
 
 			current = current.Next()
 		}
 
-		// schedule not feasible, try with the next mover
+		// Check if the new order can be scheduled
+		if newOrderElem != nil {
+
+			newOrder := newOrderElem.Value.(*Order)
+			newCost, nextDeliveryTime := computeCost(lastOrder.id, lastOrder.x, newOrder)
+			if newCost < minCost {
+				minOrderElem = newOrderElem
+				minCost = newCost
+				bestDeliveryTime = nextDeliveryTime
+
+			} else if newCost == minCost && minOrderElem != nil {
+				if newOrder.id < minOrderElem.Value.(*Order).id {
+					minOrderElem = newOrderElem
+					minCost = newCost
+					bestDeliveryTime = nextDeliveryTime
+				}
+			}
+
+		}
+
+		// schedule not feasible
 		if minCost == utils.Inf {
 			return minCost
 		}
@@ -155,13 +181,33 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List) int {
 		// schedule is feasible
 		cost += minCost
 		minOrder := minOrderElem.Value.(*Order)
-		minOrder.x = newDeliveryTime
+
+		// Update output
+		if y != nil && x != nil {
+			y[lastOrder.id][minOrder.id] = 1
+			x[minOrder.id] = 1
+
+			if minCost == 1 {
+				z[minOrder.id] = 1
+			} else if minCost == 2 {
+				z1[minOrder.id] = 1
+			} else if minCost == 3 {
+				z2[minOrder.id] = 1
+			}
+
+		}
 
 		// Remove order from list of orders to schedule
-		orders.MoveToBack(minOrderElem)
+		if minOrderElem != newOrderElem {
+			orders.MoveToBack(minOrderElem)
+			length--
+			iteration--
+			i--
+		} else {
+			newOrderElem = nil
+		}
+
 		lastOrder = minOrder
-		length--
-		i--
 	}
 
 	return cost
@@ -379,11 +425,12 @@ func main() {
 	fmt.Print("Algorithm 1:\n")
 	start := time.Now()
 	var cost int
-	y, x, w, z, z1, z2 := GreedySolver(nOrder, nMover, &cost)
+	_, x, w, z, z1, z2 := GreedySolver(&cost)
+
 	elapsed := time.Since(start)
 	//printResults(res)
 
-	utils.PrintAssigmentMatrix(y, nOrder)
+	//utils.PrintAssigmentMatrix(y, nOrder)
 	fmt.Println(x)
 	fmt.Println(w)
 	fmt.Println(z, z1, z2)
