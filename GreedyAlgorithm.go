@@ -181,6 +181,7 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 		// schedule is feasible
 		cost += minCost
 		minOrder := minOrderElem.Value.(*Order)
+		minOrder.x = bestDeliveryTime
 
 		// Update output
 		if y != nil && x != nil {
