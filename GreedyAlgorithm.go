@@ -28,6 +28,8 @@ var nMover int
 var distances [][]int
 var deliveryTimes DeliveryTimeVector
 
+var tooEarly int;
+
 /* orderIndexToName[order index] = alphanumeric ID (given in CSV files) */
 var orderIndexToName map[int]string
 /* moverIndexToName[mover index] = alphanumeric ID (given in CSV files);
@@ -186,7 +188,7 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 		// Update output
 		if y != nil && x != nil {
 			y[lastOrder.id][minOrder.id] = 1
-			x[minOrder.id] = 1
+			x[minOrder.id] = bestDeliveryTime
 
 			if minCost == 1 {
 				z[minOrder.id] = 1
@@ -255,8 +257,11 @@ func computeCost(lastOrderId int, lastDeliveryTime int, nextOrder *Order) (int, 
 	var cost int
 	switch {
 	case lateness < -15:
-		cost = utils.Inf
-	case lateness < 15 && lateness > -15:
+		//cost = utils.Inf
+		cost = 0
+		x = nextOrder.t - 15
+		tooEarly++
+	case lateness <= 15 && lateness > -15:
 		cost = 0
 	case lateness >= 15 && lateness < 30:
 		cost = 1
@@ -416,7 +421,7 @@ func getInput() (distMat Distances, deliveryTime DeliveryTimeVector) {
 
 func main() {
 	nOrder = ORDER_N
-	nMover = MOVER_N
+	nMover = 20
 
 	//distances = utils.CreateOrderMatrix(nOrder, nMover)
 	//deliveryTimes = utils.CreateDeliveryTimeVector(nOrder)
