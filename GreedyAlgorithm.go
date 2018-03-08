@@ -28,8 +28,6 @@ var nMover int
 var distances [][]int
 var deliveryTimes DeliveryTimeVector
 
-var tooEarly int;
-
 /* orderIndexToName[order index] = alphanumeric ID (given in CSV files) */
 var orderIndexToName map[int]string
 /* moverIndexToName[mover index] = alphanumeric ID (given in CSV files);
@@ -260,7 +258,6 @@ func computeCost(lastOrderId int, lastDeliveryTime int, nextOrder *Order) (int, 
 		//cost = utils.Inf
 		cost = 0
 		x = nextOrder.t - 15
-		tooEarly++
 	case lateness <= 15 && lateness > -15:
 		cost = 0
 	case lateness >= 15 && lateness < 30:
@@ -419,9 +416,41 @@ func getInput() (distMat Distances, deliveryTime DeliveryTimeVector) {
 	return distMat, deliveryTime
 }
 
+func getUnfeasibleOrdersPairs(orders *list.List) [][]uint8 {
+
+	notFeasiblePair := make([][]uint8, nOrder+nMover)
+	for i := 0; i < nOrder; i++ {
+		notFeasiblePair[i] = make([]uint8, nOrder)
+	}
+
+	var alpha int
+	for i := orders.Front(); i != nil; i = i.Next() {
+		for j := orders.Front(); j != nil; j = j.Next() {
+			if i != j {
+				first := i.Value.(*Order)
+				sec := j.Value.(*Order)
+
+				if first.id >= nOrder {
+					alpha = 75
+				} else {
+					alpha = 60
+				}
+
+				// ti−ti0 +α < d(i0 , i)
+				k := sec.t-first.t+alpha < distances[first.id][sec.id]
+				if k {
+					notFeasiblePair[first.id][sec.id] = 1
+				}
+			}
+		}
+	}
+
+	return notFeasiblePair
+}
+
 func main() {
 	nOrder = ORDER_N
-	nMover = 20
+	nMover = 23
 
 	//distances = utils.CreateOrderMatrix(nOrder, nMover)
 	//deliveryTimes = utils.CreateDeliveryTimeVector(nOrder)
