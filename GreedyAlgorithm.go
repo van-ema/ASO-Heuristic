@@ -28,6 +28,8 @@ var nMover int
 var distances [][]int
 var deliveryTimes DeliveryTimeVector
 
+var UnfeasibleOrdersPairsMatrix [][]uint8
+
 /* orderIndexToName[order index] = alphanumeric ID (given in CSV files) */
 var orderIndexToName map[int]string
 /* moverIndexToName[mover index] = alphanumeric ID (given in CSV files);
@@ -355,7 +357,7 @@ func getUnfeasibleOrdersPairs(orders *list.List) [][]uint8 {
 		notFeasiblePair[i] = make([]uint8, nOrder)
 	}
 
-	alpha := 60
+	alpha := 75
 	for i := orders.Front(); i != nil; i = i.Next() {
 		for j := orders.Front(); j != nil; j = j.Next() {
 			if i != j {
@@ -369,12 +371,12 @@ func getUnfeasibleOrdersPairs(orders *list.List) [][]uint8 {
 		}
 	}
 
-	alpha = 75
+	alpha = 60
 	for i := nOrder; i < nMover+nOrder; i++ {
 		for j := orders.Front(); j != nil; j = j.Next() {
 			first := j.Value.(*Order)
 
-			if first.t+alpha < distances[i][first.id] {
+			if first.t +alpha < distances[i][first.id] {
 				notFeasiblePair[i][first.id] = 1
 			}
 		}
@@ -391,14 +393,18 @@ func main() {
 	//deliveryTimes = utils.CreateDeliveryTimeVector(nOrder)
 
 	distances, deliveryTimes = getInput()
-	//orders := initOrder(deliveryTimes, nOrder)
-	//utils.PrintMatrix(getUnfeasibleOrdersPairs(orders))
 
-	utils.PrintDistanceMatrix(distances, nOrder)
+	/* TODO put in other place */
+	orders := initOrder(deliveryTimes, nOrder)
+	UnfeasibleOrdersPairsMatrix = getUnfeasibleOrdersPairs(orders)
+	//utils.PrintMatrix(UnfeasibleOrdersPairsMatrix)
+
+	//utils.PrintDistanceMatrix(distances, nOrder)
 	fmt.Print("Algorithm 1:\n")
 	start := time.Now()
 	results := GreedySolver(nOrder, nMover)
 
+	utils.PrintMatrix(results.y)
 	elapsed := time.Since(start)
 	//printResults(res)
 
