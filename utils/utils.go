@@ -6,7 +6,6 @@ import (
 	"fmt"
 )
 
-
 const Inf = int(^uint(0) >> 1)
 
 func checkError(message string, err error) {
@@ -17,7 +16,7 @@ func checkError(message string, err error) {
 
 func strArrToIntArr(v []string) []int {
 	l := len(v)
-	intArr := make([]int,l)
+	intArr := make([]int, l)
 	for i, val := range v {
 		intArr[i] = strToInt(val)
 	}
@@ -108,4 +107,11 @@ func PrintAssigmentMatrix(mat [][]uint8, n int, ) {
 
 	fmt.Printf("\n")
 	fmt.Printf("\n")
+}
+
+func PrintMatrix(mat [][]uint8) {
+	for i := 0; i < len(mat); i++ {
+		fmt.Print(mat[i])
+		fmt.Print("\n")
+	}
 }
