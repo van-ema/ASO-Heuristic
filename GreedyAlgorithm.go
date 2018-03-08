@@ -332,7 +332,7 @@ func main() {
 	deliveryTimes = utils.CreateDeliveryTimeVector(nOrder) */
 	distances, deliveryTimes = getInput()
 
-	utils.PrintDistanceMatrix(distances, nOrder)
+	//utils.PrintDistanceMatrix(distances, nOrder)
 	fmt.Print("Algorithm 1:\n")
 	start := time.Now()
 	var cost int
