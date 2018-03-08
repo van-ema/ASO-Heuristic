@@ -37,6 +37,9 @@ var orderIndexToName map[int]string
 var moverIndexToName map[int]string
 
 type SolverResult struct{
+	nOrder int
+	nMover int
+	totalCost int
 	y [][]uint8
 	x []int
 	w []uint8
@@ -45,7 +48,7 @@ type SolverResult struct{
 	z2 []uint8
 }
 
-func initResults() (res SolverResult){
+func initResults(nOrder, nMover int) (res SolverResult){
 
 	y := make([][]uint8, nOrder+nMover)
 	for i := 0; i < nOrder+nMover; i++ {
@@ -60,6 +63,9 @@ func initResults() (res SolverResult){
 	z2 := make([]uint8, nOrder)
 
 	return SolverResult{
+		totalCost:0,
+		nMover: nMover,
+		nOrder:nOrder,
 		x:x,
 		y:y,
 		w:w,
@@ -68,13 +74,12 @@ func initResults() (res SolverResult){
 		z2: z2,}
 }
 
-func GreedySolver(totalCost *int) SolverResult {
+func GreedySolver(nOrder, nMover int) SolverResult {
 
-	results := initResults()
+	results := initResults(nOrder, nMover)
 
 	orders := initOrder(deliveryTimes, nOrder)
 
-	*totalCost = 0  // keep the total cost of the solution
 	nAssigned := 0  // number of orders assigned
 	nCancelled := 0 // number of cancelled orders
 
@@ -110,7 +115,7 @@ func GreedySolver(totalCost *int) SolverResult {
 
 		} else {
 			cancelled.PushFront(toSchedule)
-			*totalCost += 10
+			results.totalCost += 10
 			results.w[toSchedule.Value.(*Order).id] = 1
 			nCancelled++
 		}
@@ -121,7 +126,7 @@ func GreedySolver(totalCost *int) SolverResult {
 	// Phase-2 : Re-compute final schedule for each mover and update output structures
 	for mover := 0; mover < nMover; mover++ {
 		cost := SingleMoverSchedulingOrders(mover, orderPartitions[mover], nil, &results)
-		*totalCost += cost // cost cannot be inf because we know the partition can be scheduled
+		results.totalCost += cost // cost cannot be inf because we know the partition can be scheduled
 	}
 
 	fmt.Printf("assigned: %d ; cancelled: %d\n", nAssigned, nCancelled)
@@ -356,8 +361,7 @@ func main() {
 	utils.PrintDistanceMatrix(distances, nOrder)
 	fmt.Print("Algorithm 1:\n")
 	start := time.Now()
-	var cost int
-	results := GreedySolver(&cost)
+	results := GreedySolver(nOrder, nMover)
 
 	elapsed := time.Since(start)
 	//printResults(res)
@@ -367,7 +371,13 @@ func main() {
 	fmt.Println(results.w)
 	fmt.Println(results.z, results.z1, results.z2)
 	fmt.Printf("Solver took %s\n", elapsed)
-	fmt.Printf("Total cost: %d\n", cost)
+	fmt.Printf("Total cost: %d\n", results.totalCost)
+
+	if Validate(results, distances,deliveryTimes) {
+		fmt.Printf("VALID")
+	} else {
+		fmt.Printf("NOT VALID")
+	}
 
 	//fmt.Print("\n\nAlgorithm 2:\n")
 	//start = time.Now()
