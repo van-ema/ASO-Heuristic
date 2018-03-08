@@ -302,8 +302,6 @@ func computeCost(lastOrderId int, lastDeliveryTime int, nextOrder *Order) (int, 
 
 }
 
-
-
 func getInput() (distMat Distances, deliveryTime DeliveryTimeVector) {
 	/* init */
 	distMat = make(Distances, ORDER_N+MOVER_N)
@@ -350,6 +348,41 @@ func getInput() (distMat Distances, deliveryTime DeliveryTimeVector) {
 	return distMat, deliveryTime
 }
 
+func getUnfeasibleOrdersPairs(orders *list.List) [][]uint8 {
+
+	notFeasiblePair := make([][]uint8, nOrder+nMover)
+	for i := 0; i < nOrder+nMover; i++ {
+		notFeasiblePair[i] = make([]uint8, nOrder)
+	}
+
+	alpha := 60
+	for i := orders.Front(); i != nil; i = i.Next() {
+		for j := orders.Front(); j != nil; j = j.Next() {
+			if i != j {
+				first := i.Value.(*Order)
+				sec := j.Value.(*Order)
+				// ti−ti0 +α < d(i0 , i)
+				if sec.t-first.t+alpha < distances[first.id][sec.id] {
+					notFeasiblePair[first.id][sec.id] = 1
+				}
+			}
+		}
+	}
+
+	alpha = 75
+	for i := nOrder; i < nMover+nOrder; i++ {
+		for j := orders.Front(); j != nil; j = j.Next() {
+			first := j.Value.(*Order)
+
+			if first.t+alpha < distances[i][first.id] {
+				notFeasiblePair[i][first.id] = 1
+			}
+		}
+	}
+
+	return notFeasiblePair
+}
+
 func main() {
 	nOrder = ORDER_N
 	nMover = MOVER_N
@@ -358,6 +391,9 @@ func main() {
 	//deliveryTimes = utils.CreateDeliveryTimeVector(nOrder)
 
 	distances, deliveryTimes = getInput()
+	//orders := initOrder(deliveryTimes, nOrder)
+	//utils.PrintMatrix(getUnfeasibleOrdersPairs(orders))
+
 	utils.PrintDistanceMatrix(distances, nOrder)
 	fmt.Print("Algorithm 1:\n")
 	start := time.Now()
