@@ -17,6 +17,7 @@ type Order struct {
 	name string // alphanumeric name
 	x    int    // target delivery time
 	t    int    // delivery time
+	cost int    // The cost that the order add to the final solution
 }
 
 type Distances [][]int
@@ -38,19 +39,19 @@ var orderIndexToName map[int]string
  */
 var moverIndexToName map[int]string
 
-type SolverResult struct{
-	nOrder int
-	nMover int
+type SolverResult struct {
+	nOrder    int
+	nMover    int
 	totalCost int
-	y [][]uint8
-	x []int
-	w []uint8
-	z []uint8
-	z1 []uint8
-	z2 []uint8
+	y         [][]uint8
+	x         []int
+	w         []uint8
+	z         []uint8
+	z1        []uint8
+	z2        []uint8
 }
 
-func initResults(nOrder, nMover int) (res SolverResult){
+func initResults(nOrder, nMover int) (res SolverResult) {
 
 	y := make([][]uint8, nOrder+nMover)
 	for i := 0; i < nOrder+nMover; i++ {
@@ -65,15 +66,15 @@ func initResults(nOrder, nMover int) (res SolverResult){
 	z2 := make([]uint8, nOrder)
 
 	return SolverResult{
-		totalCost:0,
-		nMover: nMover,
-		nOrder:nOrder,
-		x:x,
-		y:y,
-		w:w,
-		z:z,
-		z1: z1,
-		z2: z2,}
+		totalCost: 0,
+		nMover:    nMover,
+		nOrder:    nOrder,
+		x:         x,
+		y:         y,
+		w:         w,
+		z:         z,
+		z1:        z1,
+		z2:        z2,}
 }
 
 func GreedySolver(nOrder, nMover int) SolverResult {
@@ -212,21 +213,7 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 		cost += minCost
 		minOrder := minOrderElem.Value.(*Order)
 		minOrder.x = bestDeliveryTime
-
-		// Update output
-		if results != nil {
-			results.y[lastOrder.id][minOrder.id] = 1
-			results.x[minOrder.id] = bestDeliveryTime
-
-			if minCost == 1 {
-				results.z[minOrder.id] = 1
-			} else if minCost == 2 {
-				results.z1[minOrder.id] = 1
-			} else if minCost == 3 {
-				results.z2[minOrder.id] = 1
-			}
-
-		}
+		minOrder.cost = minCost
 
 		// Remove order from list of orders to schedule
 		if minOrderElem != newOrderElem {
@@ -239,6 +226,37 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 		}
 
 		lastOrder = minOrder
+	}
+
+	// Update output
+	if results != nil {
+		moverOrder := new(Order)
+		moverOrder.id = mover + nOrder
+		orders.PushFront(moverOrder)
+
+		for e := orders.Front(); e != nil; e = e.Next() {
+			order := e.Value.(*Order)
+			next := e.Next()
+			if next != nil {
+				next := next.Value.(*Order)
+				results.y[order.id][next.id] = 1
+			}
+
+			if order.id < nOrder {
+				results.x[order.id] = order.x
+				if order.cost == 1 {
+					results.z[order.id] = 1
+				} else if order.cost == 2 {
+					results.z[order.id] = 1
+					results.z1[order.id] = 1
+				} else if order.cost == 3 {
+					results.z[order.id] = 1
+					results.z1[order.id] = 1
+					results.z2[order.id] = 1
+				}
+			}
+		}
+
 	}
 
 	return cost
@@ -284,19 +302,19 @@ func computeCost(lastOrderId int, lastDeliveryTime int, nextOrder *Order) (int, 
 	lateness := x - nextOrder.t
 	var cost int
 	switch {
-	case lateness < -15:
+	case lateness <= -15:
 		//cost = utils.Inf
 		cost = 0
 		x = nextOrder.t - 15
 	case lateness <= 15 && lateness > -15:
 		cost = 0
-	case lateness >= 15 && lateness < 30:
+	case lateness > 15 && lateness <= 30:
 		cost = 1
-	case lateness >= 30 && lateness < 45:
+	case lateness > 30 && lateness <= 45:
 		cost = 2
-	case lateness >= 45 && lateness < 60:
+	case lateness > 45 && lateness <= 60:
 		cost = 3
-	case lateness >= 60:
+	case lateness > 60:
 		cost = utils.Inf
 	}
 
@@ -360,13 +378,11 @@ func getUnfeasibleOrdersPairs(orders *list.List) [][]uint8 {
 	alpha := 75
 	for i := orders.Front(); i != nil; i = i.Next() {
 		for j := orders.Front(); j != nil; j = j.Next() {
-			if i != j {
-				first := i.Value.(*Order)
-				sec := j.Value.(*Order)
+			first := i.Value.(*Order)
+			sec := j.Value.(*Order)
+			if i == j || sec.t-first.t+alpha < distances[first.id][sec.id] {
 				// ti−ti0 +α < d(i0 , i)
-				if sec.t-first.t+alpha < distances[first.id][sec.id] {
-					notFeasiblePair[first.id][sec.id] = 1
-				}
+				notFeasiblePair[first.id][sec.id] = 1
 			}
 		}
 	}
@@ -376,7 +392,7 @@ func getUnfeasibleOrdersPairs(orders *list.List) [][]uint8 {
 		for j := orders.Front(); j != nil; j = j.Next() {
 			first := j.Value.(*Order)
 
-			if first.t +alpha < distances[i][first.id] {
+			if first.t+alpha < distances[i][first.id] {
 				notFeasiblePair[i][first.id] = 1
 			}
 		}
@@ -385,7 +401,8 @@ func getUnfeasibleOrdersPairs(orders *list.List) [][]uint8 {
 	return notFeasiblePair
 }
 
-func main() {
+func
+main() {
 	nOrder = ORDER_N
 	nMover = MOVER_N
 
@@ -397,25 +414,23 @@ func main() {
 	/* TODO put in other place */
 	orders := initOrder(deliveryTimes, nOrder)
 	UnfeasibleOrdersPairsMatrix = getUnfeasibleOrdersPairs(orders)
-	//utils.PrintMatrix(UnfeasibleOrdersPairsMatrix)
+	utils.PrintMatrix(UnfeasibleOrdersPairsMatrix)
 
 	//utils.PrintDistanceMatrix(distances, nOrder)
 	fmt.Print("Algorithm 1:\n")
 	start := time.Now()
 	results := GreedySolver(nOrder, nMover)
-
-	utils.PrintMatrix(results.y)
 	elapsed := time.Since(start)
 	//printResults(res)
 
-	//utils.PrintAssigmentMatrix(y, nOrder)
+	utils.PrintAssigmentMatrix(results.y, nOrder)
 	fmt.Println(results.x)
 	fmt.Println(results.w)
 	fmt.Println(results.z, results.z1, results.z2)
 	fmt.Printf("Solver took %s\n", elapsed)
 	fmt.Printf("Total cost: %d\n", results.totalCost)
 
-	if Validate(results, distances,deliveryTimes) {
+	if Validate(results, distances, deliveryTimes) {
 		fmt.Printf("VALID")
 	} else {
 		fmt.Printf("NOT VALID")
