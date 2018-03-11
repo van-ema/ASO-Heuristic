@@ -166,19 +166,20 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 			newCost, nextDeliveryTime := computeCost(lastOrder.id, lastOrder.x, order)
 
 			// If costs are equals we choose the order with the lower id
-			if newCost < minCost {
-
+			if newCost < minCost || (newCost == minCost && nextDeliveryTime < bestDeliveryTime) {
 				minOrderElem = current
 				minCost = newCost
 				bestDeliveryTime = nextDeliveryTime
 
-			} else if newCost == minCost && minOrderElem != nil {
+			} else if newCost == minCost && nextDeliveryTime == bestDeliveryTime &&
+				minOrderElem != nil {
 
 				if order.id < minOrderElem.Value.(*Order).id {
 					minOrderElem = current
 					minCost = newCost
 					bestDeliveryTime = nextDeliveryTime
 				}
+
 			}
 
 			current = current.Next()
@@ -189,17 +190,21 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 
 			newOrder := newOrderElem.Value.(*Order)
 			newCost, nextDeliveryTime := computeCost(lastOrder.id, lastOrder.x, newOrder)
-			if newCost < minCost {
+
+			if newCost < minCost || (newCost == minCost && nextDeliveryTime < bestDeliveryTime) {
 				minOrderElem = newOrderElem
 				minCost = newCost
 				bestDeliveryTime = nextDeliveryTime
 
-			} else if newCost == minCost && minOrderElem != nil {
+			} else if newCost == minCost && nextDeliveryTime == bestDeliveryTime &&
+				minOrderElem != nil {
+
 				if newOrder.id < minOrderElem.Value.(*Order).id {
 					minOrderElem = newOrderElem
 					minCost = newCost
 					bestDeliveryTime = nextDeliveryTime
 				}
+
 			}
 
 		}
@@ -404,7 +409,7 @@ func getUnfeasibleOrdersPairs(orders *list.List) [][]uint8 {
 func
 main() {
 	nOrder = ORDER_N
-	nMover = MOVER_N
+	nMover = 20
 
 	//distances = utils.CreateOrderMatrix(nOrder, nMover)
 	//deliveryTimes = utils.CreateDeliveryTimeVector(nOrder)
@@ -414,7 +419,7 @@ main() {
 	/* TODO put in other place */
 	orders := initOrder(deliveryTimes, nOrder)
 	UnfeasibleOrdersPairsMatrix = getUnfeasibleOrdersPairs(orders)
-	utils.PrintMatrix(UnfeasibleOrdersPairsMatrix)
+	//utils.PrintMatrix(UnfeasibleOrdersPairsMatrix)
 
 	//utils.PrintDistanceMatrix(distances, nOrder)
 	fmt.Print("Algorithm 1:\n")
