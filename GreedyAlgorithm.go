@@ -40,15 +40,20 @@ var orderIndexToName map[int]string
 var moverIndexToName map[int]string
 
 type SolverResult struct {
-	nOrder    int
-	nMover    int
-	totalCost int
-	y         [][]uint8
-	x         []int
-	w         []uint8
-	z         []uint8
-	z1        []uint8
-	z2        []uint8
+	nOrder     int
+	nMover     int
+	totalCost  int
+	y          [][]uint8
+	x          []int
+	w          []uint8
+	z          []uint8
+	z1         []uint8
+	z2         []uint8
+	n1         int
+	n2         int
+	n3         int
+	nAssigned  int
+	nCancelled int
 }
 
 func initResults(nOrder, nMover int) (res SolverResult) {
@@ -82,9 +87,7 @@ func GreedySolver(nOrder, nMover int) SolverResult {
 	results := initResults(nOrder, nMover)
 
 	orders := initOrder(deliveryTimes, nOrder)
-
-	nAssigned := 0  // number of orders assigned
-	nCancelled := 0 // number of cancelled orders
+	UnfeasibleOrdersPairsMatrix = getUnfeasibleOrdersPairs(orders)
 
 	// Each partition is a list of the orders assigned to the mover
 	orderPartitions := make([]*list.List, nMover)
@@ -101,6 +104,12 @@ func GreedySolver(nOrder, nMover int) SolverResult {
 		bestMover := -1
 		for mover := 0; mover < nMover; mover++ {
 
+			for e := orderPartitions[mover].Front(); e != nil; e = e.Next() {
+				if UnfeasibleOrdersPairsMatrix[e.Value.(*Order).id][toSchedule.Value.(*Order).id] == 1 {
+					continue
+				}
+			}
+
 			// add temporary the order to schedule to the partition of the current mover
 			// The output variable are set to zero because this is just a temporary partition
 			// Real output variable are computed in phase-2
@@ -114,13 +123,13 @@ func GreedySolver(nOrder, nMover int) SolverResult {
 		// The schedule is feasible for bestMover
 		if bestMover != -1 {
 			insert(orderPartitions[bestMover], toSchedule.Value.(*Order))
-			nAssigned++
+			results.nAssigned++
 
 		} else {
 			cancelled.PushFront(toSchedule)
 			results.totalCost += 10
 			results.w[toSchedule.Value.(*Order).id] = 1
-			nCancelled++
+			results.nCancelled++
 		}
 
 		toSchedule = toSchedule.Next()
@@ -131,8 +140,6 @@ func GreedySolver(nOrder, nMover int) SolverResult {
 		cost := SingleMoverSchedulingOrders(mover, orderPartitions[mover], nil, &results)
 		results.totalCost += cost // cost cannot be inf because we know the partition can be scheduled
 	}
-
-	fmt.Printf("assigned: %d ; cancelled: %d\n", nAssigned, nCancelled)
 
 	return results
 }
@@ -251,13 +258,16 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 				results.x[order.id] = order.x
 				if order.cost == 1 {
 					results.z[order.id] = 1
+					results.n1++
 				} else if order.cost == 2 {
 					results.z[order.id] = 1
 					results.z1[order.id] = 1
+					results.n2++
 				} else if order.cost == 3 {
 					results.z[order.id] = 1
 					results.z1[order.id] = 1
 					results.z2[order.id] = 1
+					results.n3++
 				}
 			}
 		}
@@ -406,52 +416,37 @@ func getUnfeasibleOrdersPairs(orders *list.List) [][]uint8 {
 	return notFeasiblePair
 }
 
-func
-main() {
+func main() {
 	nOrder = ORDER_N
 	nMover = 20
 
-	//distances = utils.CreateOrderMatrix(nOrder, nMover)
-	//deliveryTimes = utils.CreateDeliveryTimeVector(nOrder)
+	start := time.Now()
 
 	distances, deliveryTimes = getInput()
 
-	/* TODO put in other place */
-	orders := initOrder(deliveryTimes, nOrder)
-	UnfeasibleOrdersPairsMatrix = getUnfeasibleOrdersPairs(orders)
-	//utils.PrintMatrix(UnfeasibleOrdersPairsMatrix)
-
-	//utils.PrintDistanceMatrix(distances, nOrder)
-	fmt.Print("Algorithm 1:\n")
-	start := time.Now()
 	results := GreedySolver(nOrder, nMover)
-	elapsed := time.Since(start)
-	//printResults(res)
 
-	utils.PrintAssigmentMatrix(results.y, nOrder)
-	fmt.Println(results.x)
-	fmt.Println(results.w)
-	fmt.Println(results.z, results.z1, results.z2)
-	fmt.Printf("Solver took %s\n", elapsed)
-	fmt.Printf("Total cost: %d\n", results.totalCost)
+	utils.WriteAdjMatOnFile("y.csv", results.y, orderIndexToName, moverIndexToName)
+	utils.WriteOrderVectorInt("x.csv", results.x, orderIndexToName, []string{"order", "x"})
+	utils.WriteOrderVectorUint8("w.csv", results.w, orderIndexToName, []string{"order", "w"})
+	utils.WriteOrderVectorUint8("z.csv", results.z, orderIndexToName, []string{"order", "z"})
+	utils.WriteOrderVectorUint8("z1.csv", results.z1, orderIndexToName, []string{"order", "z1"})
+	utils.WriteOrderVectorUint8("z2.csv", results.z2, orderIndexToName, []string{"order", "z2"})
+
+	elapsed := time.Since(start)
 
 	if Validate(results, distances, deliveryTimes) {
-		fmt.Printf("VALID")
+		fmt.Printf("The solution is admissible\r\n")
 	} else {
-		fmt.Printf("NOT VALID")
+		fmt.Printf("The solution is not admissible\r\n")
 	}
 
-	//fmt.Print("\n\nAlgorithm 2:\n")
-	//start = time.Now()
-	//y, x, w, z, z1, z2 = BaseSolver(&cost)
-	//elapsed = time.Since(start)
-	////printResults(res)
-	//
-	//utils.PrintAssigmentMatrix(y, nOrder)
-	//fmt.Println(x)
-	//fmt.Println(w)
-	//fmt.Println(z, z1, z2)
-	//fmt.Printf("Solver took %s\n", elapsed)
-	//fmt.Printf("Total cost: %d\n", cost)
+	fmt.Printf("#Order, #Mover\r\n")
+	fmt.Printf("%d,%d\r\n", nOrder, nMover)
+	fmt.Printf("Solver took %s\r\n", elapsed)
+	fmt.Printf("Total cost: %d\r\n", results.totalCost)
+	fmt.Printf("#order in (15,30] %d\r\n", results.n1)
+	fmt.Printf("#order in (30,45] %d\r\n", results.n2)
+	fmt.Printf("#order in (45,60] %d\r\n", results.n3)
 
 }

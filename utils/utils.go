@@ -49,6 +49,19 @@ func ConvertIntToStringMatrix(from [][]int, nRow, nCol int) [][]string {
 	return to
 }
 
+func ConvertUint8ToStringMatrix(from [][]uint8, nRow, nCol int) [][]string {
+
+	var to = make([][]string, nRow)
+
+	for i := 0; i < nRow; i++ {
+		to[i] = make([]string, nCol)
+		for j := 0; j < nCol; j++ {
+			to[i][j] = strconv.Itoa(int(from[i][j]))
+		}
+	}
+	return to
+}
+
 /**
  * n = # of orders
  */
