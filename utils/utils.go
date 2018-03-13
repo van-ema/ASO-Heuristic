@@ -161,8 +161,6 @@ func deleteFile(filename string) {
 	if isError(err) {
 		return
 	}
-
-	fmt.Println("==> done deleting file")
 }
 
 func isError(err error) bool {
@@ -170,5 +168,5 @@ func isError(err error) bool {
 		fmt.Println(err.Error())
 	}
 
-	return (err != nil)
+	return err != nil
 }

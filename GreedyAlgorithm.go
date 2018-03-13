@@ -160,14 +160,14 @@ func GreedySolver(nOrder, nMover int) SolverResult {
 		results.totalCost += cost // cost cannot be inf because we know the partition can be scheduled
 	}
 
-	for mover := 0; mover < nMover; mover++ {
-		fmt.Printf("Mover-%d", mover)
-		for e := orderPartitions[mover].Front(); e != nil; e = e.Next() {
-			order := e.Value.(*Order)
-			fmt.Printf("[id: %d, t: %d, x: %d]", order.id, order.t, order.x)
-		}
-		fmt.Printf("\n")
-	}
+	//for mover := 0; mover < nMover; mover++ {
+	//	fmt.Printf("Mover-%d", mover)
+	//	for e := orderPartitions[mover].Front(); e != nil; e = e.Next() {
+	//		order := e.Value.(*Order)
+	//		fmt.Printf("[id: %d, t: %d, x: %d]", order.id, order.t, order.x)
+	//	}
+	//	fmt.Printf("\n")
+	//}
 
 
 	return results
