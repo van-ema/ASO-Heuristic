@@ -154,3 +154,21 @@ func Exist(f string) bool {
 	}
 	return err == nil
 }
+
+func deleteFile(filename string) {
+	// delete file
+	var err = os.Remove(filename)
+	if isError(err) {
+		return
+	}
+
+	fmt.Println("==> done deleting file")
+}
+
+func isError(err error) bool {
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	return (err != nil)
+}

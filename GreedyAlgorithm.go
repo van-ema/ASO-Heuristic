@@ -160,6 +160,16 @@ func GreedySolver(nOrder, nMover int) SolverResult {
 		results.totalCost += cost // cost cannot be inf because we know the partition can be scheduled
 	}
 
+	for mover := 0; mover < nMover; mover++ {
+		fmt.Printf("Mover-%d", mover)
+		for e := orderPartitions[mover].Front(); e != nil; e = e.Next() {
+			order := e.Value.(*Order)
+			fmt.Printf("[id: %d, t: %d, x: %d]", order.id, order.t, order.x)
+		}
+		fmt.Printf("\n")
+	}
+
+
 	return results
 }
 
@@ -339,7 +349,7 @@ func computeCost(lastOrderId int, lastDeliveryTime int, nextOrder *Order) (int, 
 	case lateness <= -15:
 		//cost = utils.Inf
 		cost = 0
-		x = nextOrder.t - 15
+		x = nextOrder.t
 	case lateness <= 15 && lateness > -15:
 		cost = 0
 	case lateness > 15 && lateness <= 30:
@@ -462,6 +472,8 @@ func main() {
 	}
 
 	start := time.Now()
+	//distances = utils.CreateOrderMatrix(nOrder, nMover)
+	//deliveryTimes = utils.CreateDeliveryTimeVector(nOrder)
 	distances, deliveryTimes = getInput()
 	if len(deliveryTimes) != nOrder {
 		fmt.Printf("len of delivery time vector != #orders\r\n")
@@ -490,6 +502,7 @@ func main() {
 	fmt.Printf("%d,%d\r\n", nOrder, nMover)
 	fmt.Printf("Solver took %s\r\n", elapsed)
 	fmt.Printf("Total cost: %d\r\n", results.totalCost)
+	fmt.Printf("assigned: %d, cancelled %d\r\n", results.nAssigned, results.nCancelled)
 	fmt.Printf("#order in (15,30] %d\r\n", results.n1)
 	fmt.Printf("#order in (30,45] %d\r\n", results.n2)
 	fmt.Printf("#order in (45,60] %d\r\n", results.n3)

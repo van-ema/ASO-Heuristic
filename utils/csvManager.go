@@ -25,16 +25,14 @@ import (
 )
 
 const (
-	DELIVERY_TIME_FILENAME   = "input/deliveryTime_ist3.csv"
-	DISTANCE_MAT_FILENAME = "input/distanceMatrix_ist3.csv"
+	DELIVERY_TIME_FILENAME = "input/deliveryTime_ist3.csv"
+	DISTANCE_MAT_FILENAME  = "input/distanceMatrix_ist3.csv"
 )
 
 var (
-	DeliveryTimeFilename = DELIVERY_TIME_FILENAME
+	DeliveryTimeFilename   = DELIVERY_TIME_FILENAME
 	DistanceMatrixFilename = DISTANCE_MAT_FILENAME
 )
-
-
 
 func saveToFile(file *os.File, orders [][]string, orderIndexToName, moverIndexToName map[int]string) int {
 
@@ -51,7 +49,7 @@ func saveToFile(file *os.File, orders [][]string, orderIndexToName, moverIndexTo
 			v = append(v, moverIndexToName[index-nCol])
 		}
 
-		err := w.Write(append(v[len(v)-1:], v[1:len(v)-1]...))
+		err := w.Write(append(v[len(v)-1:], v[0:len(v)-1]...))
 		checkError("Error in write.", err)
 	}
 
@@ -93,6 +91,10 @@ func loadFromFile(file *os.File) [][]string {
 func openFileToWrite(filename string) *os.File {
 	var file *os.File
 	var err error
+
+	if Exist(filename) {
+		deleteFile(filename)
+	}
 
 	file, err = os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0755)
 	checkError("Error in opening file.", err)
@@ -192,7 +194,7 @@ func WriteAdjMatOnFile(filename string, y [][]uint8, orderIndexToName, moverInde
 	colHeader := make([]string, nCol+1)
 	colHeader[0] = "Y"
 	for i := 1; i < nCol+1; i++ {
-		colHeader[i] = orderIndexToName[i]
+		colHeader[i] = orderIndexToName[i-1]
 	}
 
 	adjMat := ConvertUint8ToStringMatrix(y, nRow, nCol)
