@@ -8,9 +8,16 @@ import (
 )
 
 const (
-	deliveryTimeFilename   = "input/deliveryTime_ist3.csv"
-	distanceMatrixFilename = "input/distanceMatrix_ist3.csv"
+	DELIVERY_TIME_FILENAME   = "input/deliveryTime_ist3.csv"
+	DISTANCE_MAT_FILENAME = "input/distanceMatrix_ist3.csv"
 )
+
+var (
+	DeliveryTimeFilename = DELIVERY_TIME_FILENAME
+	DistanceMatrixFilename = DISTANCE_MAT_FILENAME
+)
+
+
 
 func saveToFile(file *os.File, orders [][]string, orderIndexToName, moverIndexToName map[int]string) int {
 
@@ -120,7 +127,7 @@ func ReadDistanceMatrix(n int) (ordOrd DistMatrix, movOrd DistMatrix) {
 
 	ordOrd = make(DistMatrix)
 	movOrd = make(DistMatrix)
-	mat := readInputFile(distanceMatrixFilename)
+	mat := readInputFile(DistanceMatrixFilename)
 
 	for i, v := range mat {
 		if i == 0 {
@@ -144,7 +151,7 @@ func ReadDistanceMatrix(n int) (ordOrd DistMatrix, movOrd DistMatrix) {
 func ReadOrdersTargetTime() TargetTimeVector {
 
 	data := make(TargetTimeVector)
-	delTime := readInputFile(deliveryTimeFilename)
+	delTime := readInputFile(DeliveryTimeFilename)
 
 	for i, v := range delTime {
 		if i == 0 {

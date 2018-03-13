@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"container/list"
 	"time"
+	"github.com/pborman/getopt/v2"
+	"os"
 )
 
 const (
@@ -23,8 +25,8 @@ type Order struct {
 type Distances [][]int
 type DeliveryTimeVector []int
 
-var nOrder int
-var nMover int
+var nOrder = ORDER_N
+var nMover = MOVER_N
 
 var distances [][]int
 var deliveryTimes DeliveryTimeVector
@@ -416,13 +418,29 @@ func getUnfeasibleOrdersPairs(orders *list.List) [][]uint8 {
 	return notFeasiblePair
 }
 
+func init() {
+	getopt.FlagLong(&utils.DistanceMatrixFilename, "distanceMat", 'd', "distance matrix filename")
+	getopt.FlagLong(&utils.DeliveryTimeFilename, "deliveryTimes", 't', "delivery times vector filename")
+
+	getopt.FlagLong(&nOrder, "nOrder", 'n', "number of orders")
+	getopt.FlagLong(&nMover, "nmover", 'm', "number of movers")
+}
+
 func main() {
-	nOrder = ORDER_N
-	nMover = 20
+
+	getopt.Parse()
+	if !utils.Exist(utils.DeliveryTimeFilename) || !utils.Exist(utils.DistanceMatrixFilename) {
+		getopt.Usage()
+		os.Exit(1)
+	}
 
 	start := time.Now()
-
 	distances, deliveryTimes = getInput()
+	if len(deliveryTimes) != nOrder {
+		fmt.Errorf("len of delivery time vector != #orders\r\n")
+		getopt.Usage()
+		os.Exit(1)
+	}
 
 	results := GreedySolver(nOrder, nMover)
 

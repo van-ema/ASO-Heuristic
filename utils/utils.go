@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"log"
 	"fmt"
+	"os"
 )
 
 const Inf = int(^uint(0) >> 1)
@@ -127,4 +128,12 @@ func PrintMatrix(mat [][]uint8) {
 		fmt.Print(mat[i])
 		fmt.Print("\n")
 	}
+}
+
+func Exist(f string) bool {
+	_, err := os.Stat(f)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return err == nil
 }
