@@ -341,17 +341,22 @@ func computeCost(lastOrderId int, lastDeliveryTime int, nextOrder *Order) (int, 
 
 func getInput() (distMat Distances, deliveryTime DeliveryTimeVector) {
 	/* init */
-	distMat = make(Distances, ORDER_N+MOVER_N)
-	deliveryTime = make(DeliveryTimeVector, ORDER_N)
+	distMat = make(Distances, nOrder+nMover)
+	deliveryTime = make(DeliveryTimeVector, nOrder)
 	orderIndexToName = make(map[int]string)
 	moverIndexToName = make(map[int]string)
 
 	/* read from file */
-	orderOrderDisMat, moverOrderDistMat := utils.ReadDistanceMatrix(ORDER_N)
+	orderOrderDisMat, moverOrderDistMat := utils.ReadDistanceMatrix(nOrder)
+	if len(moverOrderDistMat) < nMover {
+		fmt.Printf("too many mover! The distances matrix contains only %d mover \r\n", len(moverOrderDistMat))
+		os.Exit(1)
+	}
+
 	deliveryTimesMap := utils.ReadOrdersTargetTime()
 
 	for orderKey, distVector := range orderOrderDisMat {
-		distMat[orderKey.I] = make([]int, ORDER_N)
+		distMat[orderKey.I] = make([]int, nOrder)
 
 		/* update additional order info */
 		orderIndexToName[orderKey.I] = orderKey.N
@@ -364,12 +369,17 @@ func getInput() (distMat Distances, deliveryTime DeliveryTimeVector) {
 	}
 
 	for moverKey, distVector := range moverOrderDistMat {
-		distMat[ORDER_N+moverKey.I] = make([]int, ORDER_N)
+
+		if moverKey.I >= nMover {
+			continue
+		}
+
+		distMat[nOrder+moverKey.I] = make([]int, nOrder)
 
 		/* update additional mover info */
 		moverIndexToName[moverKey.I] = moverKey.N
 		for j, distance := range distVector {
-			distMat[ORDER_N+moverKey.I][j] = distance
+			distMat[nOrder+moverKey.I][j] = distance
 		}
 	}
 
@@ -437,12 +447,14 @@ func main() {
 	start := time.Now()
 	distances, deliveryTimes = getInput()
 	if len(deliveryTimes) != nOrder {
-		fmt.Errorf("len of delivery time vector != #orders\r\n")
+		fmt.Printf("len of delivery time vector != #orders\r\n")
 		getopt.Usage()
 		os.Exit(1)
 	}
 
 	results := GreedySolver(nOrder, nMover)
+
+	elapsed := time.Since(start)
 
 	utils.WriteAdjMatOnFile("y.csv", results.y, orderIndexToName, moverIndexToName)
 	utils.WriteOrderVectorInt("x.csv", results.x, orderIndexToName, []string{"order", "x"})
@@ -450,8 +462,6 @@ func main() {
 	utils.WriteOrderVectorUint8("z.csv", results.z, orderIndexToName, []string{"order", "z"})
 	utils.WriteOrderVectorUint8("z1.csv", results.z1, orderIndexToName, []string{"order", "z1"})
 	utils.WriteOrderVectorUint8("z2.csv", results.z2, orderIndexToName, []string{"order", "z2"})
-
-	elapsed := time.Since(start)
 
 	if Validate(results, distances, deliveryTimes) {
 		fmt.Printf("The solution is admissible\r\n")
