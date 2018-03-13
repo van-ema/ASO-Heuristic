@@ -423,7 +423,7 @@ func init() {
 	getopt.FlagLong(&utils.DeliveryTimeFilename, "deliveryTimes", 't', "delivery times vector filename")
 
 	getopt.FlagLong(&nOrder, "nOrder", 'n', "number of orders")
-	getopt.FlagLong(&nMover, "nmover", 'm', "number of movers")
+	getopt.FlagLong(&nMover, "nMover", 'm', "number of movers")
 }
 
 func main() {
