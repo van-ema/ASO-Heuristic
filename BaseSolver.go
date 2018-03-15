@@ -94,7 +94,7 @@ func schedule(order *Order, lastOrders []*Order, y [][]uint8, x []int, w []uint8
 	// Find best mover
 	for mover := 0; mover < nMover; mover++ {
 
-		cost, deliveryTime := computeCost(lastOrders[mover].id, lastOrders[mover].x, order)
+		cost, deliveryTime ,_:= computeCost(lastOrders[mover].id, lastOrders[mover].x, order)
 		if cost < minCost {
 			minCost = cost
 			bestMover = mover
