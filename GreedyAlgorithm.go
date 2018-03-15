@@ -141,7 +141,7 @@ func GreedySolver(nOrder, nMover int) SolverResult {
 		minCost := utils.Inf
 		bestMover := -1
 		var cancelledOrderPresent bool
-
+		var cancelledOrderMin bool
 		costList = make([]int,nMover)
 		for o := range costList {
 			costList[o] = -1
@@ -164,12 +164,13 @@ func GreedySolver(nOrder, nMover int) SolverResult {
 				minCost = cost
 				bestMover = mover
 				fmt.Println(bestMover)
+				cancelledOrderMin = cancelledOrderPresent
 			}
 		}
 
 		// The schedule is feasible for bestMover
 		//if bestMover != -1 {
-		if !cancelledOrderPresent {
+		if !cancelledOrderMin {
 
 			switch moverPolicy {
 			case SAME_COST_LOWER_ID:
@@ -467,7 +468,6 @@ func computeCost(lastOrderId int, lastDeliveryTime int, nextOrder *Order) (cost 
 	cancelled = false
 	switch {
 	case lateness <= -15:
-		//cost = utils.Inf
 		cost = 0
 		x = nextOrder.t - 15
 	case lateness <= 15 && lateness > -15:
@@ -479,7 +479,7 @@ func computeCost(lastOrderId int, lastDeliveryTime int, nextOrder *Order) (cost 
 	case lateness > 45 && lateness <= 60:
 		cost = 3
 	case lateness > 60:
-		cost = 10 //utils.Inf
+		cost = 10
 		cancelled = true
 	}
 
@@ -646,7 +646,7 @@ func validateResults(results SolverResult) {
 	if Validate(results, distances, deliveryTimes) {
 		fmt.Printf("The solution is admissible\r\n")
 	} else {
-		fmt.Printf("The solution is not admissible\r\n")
+		fmt.Printf("The solution is NOT admissible\r\n")
 	}
 
 }
