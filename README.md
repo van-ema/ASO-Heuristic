@@ -15,8 +15,10 @@ go build .
 Optionally you can specify flags value to use different files containing the distance matrix and the delivery times vector.
 
 ```
-Usage: orderSchedulingAlgorithm [-d value] [-m value] [-n value] [-t value] [parameters ...]
- 
+Usage: orderSchedulingAlgorithm [-i] [-d value] [-m value] [-n value] [-t value] [parameters ...]
+
+ -i, --debug  execute in debug mode: Extra output info
+
  -d, --distanceMat=value
        distance matrix filename
        
@@ -30,3 +32,10 @@ Usage: orderSchedulingAlgorithm [-d value] [-m value] [-n value] [-t value] [par
        delivery times vector filename
 ```
 
+**BenchMarch**
+
+To execute benchmarks:
+```
+go test test.bench .
+```
+We perform measurement on 20, 30, 34 and 38 mover with 205 orders.

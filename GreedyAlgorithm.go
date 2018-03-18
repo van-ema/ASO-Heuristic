@@ -27,12 +27,11 @@ import (
 )
 
 const (
-	ORDER_N = 205  // #Orders
-	MOVER_N = 38   // #Movers
-	DEBUG_MODE = true // debug mode
+	ORDER_N = 205 // #Orders
+	MOVER_N = 38  // #Movers
 )
 
-var DEBUG = DEBUG_MODE
+var DEBUG = false
 
 type Order struct {
 	id   int    // order's id
@@ -49,7 +48,7 @@ const (
 	SAME_COST_LOWER_ASSIGNED_ORDER_NUMBER MoverAssignementPolicy = 1
 )
 
-var moverPolicy MoverAssignementPolicy
+var moverPolicy = SAME_COST_LOWER_ASSIGNED_ORDER_NUMBER
 
 type Distances [][]int
 type DeliveryTimeVector []int
@@ -124,16 +123,13 @@ func makeOrderPartition() []*list.List {
 
 func GreedySolver(nOrder, nMover int) SolverResult {
 
-	results := initResults(nOrder, nMover)
-	orders := initOrder(deliveryTimes, nOrder)
-	UnfeasibleOrdersPairsMatrix = getUnfeasibleOrdersPairs(orders)
+	results := initResults(nOrder, nMover)                         // Keep output struct
+	orders := initOrder(deliveryTimes, nOrder)                     // Get linked list of orders to schedule
+	UnfeasibleOrdersPairsMatrix = getUnfeasibleOrdersPairs(orders) // orders pair i,j cannot be schedule if (i,j) value is 1
+	orderPartitions := makeOrderPartition()                        // Each partition is a list of the orders assigned to the mover
+	cancelled := list.New()                                        // list of cancelled orders
 
-	// Each partition is a list of the orders assigned to the mover
-	orderPartitions := makeOrderPartition()
-	// list of cancelled orders
-	cancelled := list.New()
-
-	costList := make([]int,nMover)
+	costList := make([]int, nMover)
 	for o := range costList {
 		costList[o] = -1
 	}
@@ -145,10 +141,7 @@ func GreedySolver(nOrder, nMover int) SolverResult {
 		bestMover := -1
 		var cancelledOrderPresent bool
 		var cancelledOrderMin bool
-		costList = make([]int,nMover)
-		for o := range costList {
-			costList[o] = -1
-		}
+
 		for mover := 0; mover < nMover; mover++ {
 
 			var cost int
@@ -181,57 +174,34 @@ func GreedySolver(nOrder, nMover int) SolverResult {
 			case SAME_COST_LOWER_ID:
 				bestMover = bestMover
 			case SAME_COST_LOWER_ASSIGNED_ORDER_NUMBER:
-				mNumOrders := make([]int,nMover)
+				mNumOrders := make([]int, nMover)
 				mBestNumb := 0
 				//lowestNumOrder := 0
-				for k,v := range costList {
+				for k, v := range costList {
 
 					if v == minCost {
 						//mIndexMinCost = append(mIndexMinCost, k)
 						mBestNumb++
-						mNumOrders[k] =  orderPartitions[k].Len()
+						mNumOrders[k] = orderPartitions[k].Len()
 						//lowestNumOrder = orderPartitions[k].Len()
 					} else {
 						mNumOrders[k] = utils.Inf
 					}
 				}
 
-
 				min := 0 //utils.Inf
-				for k,v := range mNumOrders {
+				for k, v := range mNumOrders {
 					if v <= min {
 						min = v
 						bestMover = k
 					}
 				}
-
-				/*if mBestNumb > 1 {
-					min := utils.Inf
-					for k,v := range mNumOrders {
-						if v < min {
-							min = v
-							bestMover = k
-						}
-					}
-					for  {
-						//rand.Seed(int64(minCost))
-						r := rand.Intn(nMover)
-						if mNumOrders[r] == lowestNumOrder {
-							bestMover = r
-							break
-						}
-					}
-					//bestMover =
-				} */
-
-
 			}
 
 			insert(orderPartitions[bestMover], toSchedule.Value.(*Order))
 			results.nAssigned++
 
 		} else {
-			// TODO never enters here
 			cancelled.PushFront(toSchedule)
 			results.totalCost += 10
 			results.w[toSchedule.Value.(*Order).id] = 1
@@ -262,7 +232,6 @@ func GreedySolver(nOrder, nMover int) SolverResult {
 		}
 	}
 
-
 	return results
 }
 
@@ -282,15 +251,7 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 		iteration += 1
 	}
 
-
-	//TOTAL := 0
-	//nIter := 0
-	//iterNumb := make([]int,iteration)
-	//tempN := 0
 	for i := 0; i < iteration; i++ {
-
-		/*nIter++
-		tempN = 0 */
 
 		var minOrderElem *list.Element // order that minimize the cost
 		minCost := utils.Inf           // keep the cost of the favourable order
@@ -298,7 +259,6 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 
 		current := orders.Front()
 		for j := 0; j < length; j++ {
-			//tempN++
 
 			order := current.Value.(*Order)
 
@@ -327,8 +287,6 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 
 			current = current.Next()
 		}
-
-		//iterNumb[i] = tempN
 
 		// Check if the new order can be scheduled
 		if newOrderElem != nil {
@@ -368,18 +326,12 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 		if minOrderElem != newOrderElem {
 			orders.MoveToBack(minOrderElem)
 			length--
-			//iteration--
-			//i--
 		} else {
 			newOrderElem = nil
 		}
 
 		lastOrder = minOrder
 	}
-
-	/* for _,v := range iterNumb {
-		TOTAL += v
-	} */
 
 	// Update output
 	if results != nil {
@@ -417,25 +369,6 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 
 	return cost, cancelled
 
-}
-
-func copyOrderList(source *list.List) (dest *list.List) {
-
-	dest = list.New()
-	var current *Order
-	if source != nil {
-		return dest
-	}
-	for e:= source.Front(); e != nil; e = e.Next() {
-		current = e.Value.(*Order)
-		order := new(Order)
-		order.id = current.id
-		order.t = current.t
-		order.x = current.x
-
-		dest.PushBack(current)
-	}
-	return dest
 }
 
 // orders allocation and initialization with delivery times
@@ -597,22 +530,12 @@ func getUnfeasibleOrdersPairs(orders *list.List) [][]uint8 {
 	return notFeasiblePair
 }
 
-func execute(moverPolicy MoverAssignementPolicy, debug bool) (SolverResult, time.Duration) {
-
-	if !debug {
-		DEBUG = false
-	}
-
-	getopt.Parse()
-	if !utils.Exist(utils.DeliveryTimeFilename) || !utils.Exist(utils.DistanceMatrixFilename) {
-		getopt.Usage()
-		os.Exit(1)
-	}
+func execute() (SolverResult, time.Duration) {
 
 	start := time.Now()
 	//distances = utils.CreateOrderMatrix(nOrder, nMover)
 	//deliveryTimes = utils.CreateDeliveryTimeVector(nOrder)
-	distances, deliveryTimes = getInput(nOrder,nMover)
+	distances, deliveryTimes = getInput(nOrder, nMover)
 
 	validateInput()
 
@@ -631,7 +554,6 @@ func execute(moverPolicy MoverAssignementPolicy, debug bool) (SolverResult, time
 	return results, elapsed
 }
 
-
 func validateInput() {
 	if len(deliveryTimes) != nOrder {
 		fmt.Printf("len of delivery time vector != #orders\r\n")
@@ -646,9 +568,8 @@ func init() {
 
 	getopt.FlagLong(&nOrder, "nOrder", 'n', "number of orders")
 	getopt.FlagLong(&nMover, "nMover", 'm', "number of movers")
-	//getopt.FlagLong(&moverPolicy, "moverPolicy", 'p', "mover assignment value")
+	getopt.FlagLong(&DEBUG, "debug", 'i', "execute in debug mode: Extra output info")
 }
-
 
 func printFinal(elapsed time.Duration, results SolverResult) {
 	fmt.Printf("#Order, #Mover\r\n")
@@ -680,4 +601,13 @@ func writeResultsToFile(results SolverResult) {
 	utils.WriteOrderVectorUint8("z.csv", results.z, orderIndexToName, []string{"order", "z"})
 	utils.WriteOrderVectorUint8("z1.csv", results.z1, orderIndexToName, []string{"order", "z1"})
 	utils.WriteOrderVectorUint8("z2.csv", results.z2, orderIndexToName, []string{"order", "z2"})
+}
+
+func main(){
+	getopt.Parse()
+	if !utils.Exist(utils.DeliveryTimeFilename) || !utils.Exist(utils.DistanceMatrixFilename) {
+		getopt.Usage()
+		os.Exit(1)
+	}
+	execute()
 }
