@@ -27,9 +27,12 @@ import (
 )
 
 const (
-	ORDER_N = 205 // #Orders
-	MOVER_N = 38  // #Movers
+	ORDER_N = 205  // #Orders
+	MOVER_N = 38   // #Movers
+	DEBUG_MODE = true // debug mode
 )
+
+var DEBUG = DEBUG_MODE
 
 type Order struct {
 	id   int    // order's id
@@ -163,7 +166,9 @@ func GreedySolver(nOrder, nMover int) SolverResult {
 			if cost < minCost {
 				minCost = cost
 				bestMover = mover
-				fmt.Println(bestMover)
+				if DEBUG {
+					fmt.Println(bestMover)
+				}
 				cancelledOrderMin = cancelledOrderPresent
 			}
 		}
@@ -243,12 +248,18 @@ func GreedySolver(nOrder, nMover int) SolverResult {
 	}
 
 	for mover := 0; mover < nMover; mover++ {
-		fmt.Printf("Mover-%d", mover)
+		if DEBUG {
+			fmt.Printf("Mover-%d", mover)
+		}
 		for e := orderPartitions[mover].Front(); e != nil; e = e.Next() {
 			order := e.Value.(*Order)
-			fmt.Printf("[id: %d, t: %d, x: %d]", order.id, order.t, order.x)
+			if DEBUG {
+				fmt.Printf("[id: %d, t: %d, x: %d]", order.id, order.t, order.x)
+			}
 		}
-		fmt.Printf("\n")
+		if DEBUG {
+			fmt.Printf("\n")
+		}
 	}
 
 
@@ -586,15 +597,17 @@ func getUnfeasibleOrdersPairs(orders *list.List) [][]uint8 {
 	return notFeasiblePair
 }
 
-func main() {
+func execute(moverPolicy MoverAssignementPolicy, debug bool) (SolverResult, time.Duration) {
+
+	if !debug {
+		DEBUG = false
+	}
 
 	getopt.Parse()
 	if !utils.Exist(utils.DeliveryTimeFilename) || !utils.Exist(utils.DistanceMatrixFilename) {
 		getopt.Usage()
 		os.Exit(1)
 	}
-
-	moverPolicy = SAME_COST_LOWER_ASSIGNED_ORDER_NUMBER
 
 	start := time.Now()
 	//distances = utils.CreateOrderMatrix(nOrder, nMover)
@@ -608,9 +621,14 @@ func main() {
 	elapsed := time.Since(start)
 
 	validateResults(results)
-	writeResultsToFile(results)
-	printFinal(elapsed, results)
 
+	writeResultsToFile(results)
+
+	if DEBUG {
+		printFinal(elapsed, results)
+	}
+
+	return results, elapsed
 }
 
 
@@ -642,12 +660,17 @@ func printFinal(elapsed time.Duration, results SolverResult) {
 	fmt.Printf("#order in (30,45] %d\r\n", results.n2)
 	fmt.Printf("#order in (45,60] %d\r\n", results.n3)
 }
-func validateResults(results SolverResult) {
+func validateResults(results SolverResult) bool {
 	if Validate(results, distances, deliveryTimes) {
-		fmt.Printf("The solution is admissible\r\n")
-	} else {
+		if DEBUG {
+			fmt.Printf("The solution is admissible\r\n")
+		}
+		return true
+	}
+	if DEBUG {
 		fmt.Printf("The solution is NOT admissible\r\n")
 	}
+	return false
 
 }
 func writeResultsToFile(results SolverResult) {

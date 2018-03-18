@@ -43,7 +43,9 @@ func Validate(result SolverResult, distances Distances, deliveryTime DeliveryTim
 }
 
 func constraint1(res SolverResult, dist Distances, del DeliveryTimeVector) bool {
-	printInitMess(1)
+	if DEBUG {
+		printInitMess(1)
+	}
 	var sum uint8
 	for i := 0; i < res.nOrder; i++ {
 		sum = 0
@@ -56,19 +58,24 @@ func constraint1(res SolverResult, dist Distances, del DeliveryTimeVector) bool 
 
 		}
 		if sum != 1 {
-			printFailed()
+			if DEBUG {
+				printFailed()
+			}
 			return false
 		}
 	}
-
-	printPassed()
+	if DEBUG {
+		printPassed()
+	}
 	return true
 }
 
 func constraint2(res SolverResult, dist Distances, del DeliveryTimeVector) bool {
 
 	var sum uint8
-	printInitMess(2)
+	if DEBUG {
+		printInitMess(2)
+	}
 	for i := 0; i < res.nMover+res.nOrder; i++ {
 		sum = 0
 		for j := 0; j < res.nOrder; j++ {
@@ -77,36 +84,47 @@ func constraint2(res SolverResult, dist Distances, del DeliveryTimeVector) bool 
 			}
 			sum += res.y[i][j]
 			if sum > 1 {
-				printFailed()
+				if DEBUG {
+					printFailed()
+				}
 				return false
 			}
 		}
 	}
-	printPassed()
+	if DEBUG {
+		printPassed()
+	}
 	return true
 }
 
 func constraint3(res SolverResult, dist Distances, del DeliveryTimeVector) bool {
 	//utils.PrintMatrix(UnfeasibleOrdersPairsMatrix)
-	printInitMess(3)
+	if DEBUG {
+		printInitMess(3)
+	}
 	for i := 0; i < res.nOrder+res.nMover; i++ {
 		for j := 0; j < res.nOrder; j++ {
 			//fmt.Printf("y = %d, O = %d\n",res.y[i][j],UnfeasibleOrdersPairsMatrix[i][j])
 			if res.y[i][j] == 1 && UnfeasibleOrdersPairsMatrix[i][j] == 1 {
-				printFailed()
+				if DEBUG {
+					printFailed()
+				}
 				return false
 			} else {
 				continue
 			}
 		}
 	}
-
-	printPassed()
+	if DEBUG {
+		printPassed()
+	}
 	return true
 }
 
 func constraint4(res SolverResult, dist Distances, del DeliveryTimeVector) bool {
-	printInitMess(4)
+	if DEBUG {
+		printInitMess(4)
+	}
 	for i := 0; i < res.nOrder; i++ {
 		for j := 0; j < res.nOrder; j++ {
 			if i == j {
@@ -114,29 +132,34 @@ func constraint4(res SolverResult, dist Distances, del DeliveryTimeVector) bool 
 			}
 			if UnfeasibleOrdersPairsMatrix[i][j] == 0 { /* pair doesn't belong */
 				if res.y[i][j] > 1-res.w[i] {
-					printFailed()
+					if DEBUG {
+						printFailed()
+					}
 					return false
 				}
 			}
 		}
 	}
-
-	printPassed()
+	if DEBUG {
+		printPassed()
+	}
 	return true
 }
 
 func constraint5(res SolverResult, dist Distances, del DeliveryTimeVector) bool {
-	printInitMess(5)
-	fmt.Println("       Useless constraint    ")
-	printPassed()
+	if DEBUG {
+		printInitMess(5)
+		fmt.Println("       Useless constraint    ")
+		printPassed()
+	}
 	return true
 }
 
 func constraint6(res SolverResult, dist Distances, del DeliveryTimeVector) bool {
-	printInitMess(6)
-
+	if DEBUG {
+		printInitMess(6)
+	}
 	var otherDel int
-	/* TODO CHECK otherDel = 0 for a mover */
 	for i := 0; i < res.nOrder+res.nMover; i++ {
 		for j := 0; j < res.nOrder; j++ {
 			if i >= res.nOrder { /* mover */
@@ -145,109 +168,154 @@ func constraint6(res SolverResult, dist Distances, del DeliveryTimeVector) bool 
 				otherDel = res.x[i]
 			}
 			if res.x[j] < otherDel+distances[i][j]-(1-int(res.y[i][j]) )*B {
-				printFailed()
+				if DEBUG {
+					printFailed()
+				}
 				return false
 			}
 		}
 	}
-	printPassed()
+	if DEBUG {
+		printPassed()
+	}
 	return true
 }
 
 func constraint7(res SolverResult, dist Distances, del DeliveryTimeVector) bool {
-	printInitMess(7)
+	if DEBUG {
+		printInitMess(7)
+	}
 	for i, val := range res.x {
 		//fmt.Printf("xi = %d, ti = %d\n",val , del[i] )
 		if val < del[i]-15 && res.w[i] == 0 {
-			printFailed()
+			if DEBUG {
+				printFailed()
+			}
 			return false
 		}
 	}
-	printPassed()
+	if DEBUG {
+		printPassed()
+	}
 	return true
 }
 
 func constraint8(res SolverResult, dist Distances, del DeliveryTimeVector) bool {
-	printInitMess(8)
+	if DEBUG {
+		printInitMess(8)
+	}
 	for i, val := range res.x {
 		//fmt.Printf("xi = %d, ti = %d\n",val , del[i] )
 		if val > del[i]+60 {
-			printFailed()
+			if DEBUG {
+				printFailed()
+			}
 			return false
 		}
 	}
-	printPassed()
+	if DEBUG {
+		printPassed()
+	}
 	return true
 }
 
 func constraint9(res SolverResult, dist Distances, del DeliveryTimeVector) bool {
-	printInitMess(9)
+	if DEBUG {
+		printInitMess(9)
+	}
 	for _, val := range res.x {
 		if val > ES {
-			printFailed()
+			if DEBUG {
+				printFailed()
+			}
 			return false
 		}
 	}
 
-	printPassed()
+	if DEBUG {
+		printPassed()
+	}
 	return true
 }
 
 func constraint10(res SolverResult, dist Distances, del DeliveryTimeVector) bool {
-	printInitMess(10)
+	if DEBUG {
+		printInitMess(10)
+	}
 	for i := 0; i < res.nOrder; i++ {
 		if B*int(res.z[i]) < res.x[i]-del[i]-15 {
-			fmt.Print(res.z[i], res.x[i]-del[i])
-
-			printFailed()
+			if DEBUG {
+				fmt.Print(res.z[i], res.x[i]-del[i])
+				printFailed()
+			}
 			return false
 		}
 	}
 
-	printPassed()
+	if DEBUG {
+		printPassed()
+	}
 	return true
 }
 
 func constraint11(res SolverResult, dist Distances, del DeliveryTimeVector) bool {
-	printInitMess(11)
+	if DEBUG {
+		printInitMess(11)
+	}
 	for i := 0; i < res.nOrder; i++ {
 		if B*int(res.z1[i]) < res.x[i]-del[i]-30 {
-			fmt.Print(res.z1[i], res.x[i]-del[i]-30)
-			printFailed()
+			if DEBUG {
+				fmt.Print(res.z1[i], res.x[i]-del[i]-30)
+				printFailed()
+			}
 			return false
 		}
 	}
 
-	printPassed()
+	if DEBUG {
+		printPassed()
+	}
 	return true
 }
 
 func constraint12(res SolverResult, dist Distances, del DeliveryTimeVector) bool {
-	printInitMess(12)
+	if DEBUG {
+		printInitMess(12)
+	}
 	for i := 0; i < res.nOrder; i++ {
 		if B*int(res.z2[i]) < res.x[i]-del[i]-45 {
-			printFailed()
+			if DEBUG {
+				printFailed()
+			}
 			return false
 		}
 	}
 
-	printPassed()
+	if DEBUG {
+		printPassed()
+	}
 	return true
 }
 
 func constraint13(res SolverResult, dist Distances, del DeliveryTimeVector) bool {
-	printInitMess(13)
+	if DEBUG {
+		printInitMess(13)
+	}
 	for _, vect := range res.y {
 		for _, ele := range vect {
 			if ele == 0 || ele == 1 {
 				continue
 			}
-			printFailed()
+			if DEBUG {
+				printFailed()
+			}
 			return false
 		}
 	}
 
-	printPassed()
+	if DEBUG {
+		printPassed()
+	}
 	return true
 }
 
