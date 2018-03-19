@@ -13,12 +13,14 @@ const (
 
 func BenchmarkGreedySolver(b *testing.B) {
 
-	TEST_MOVERS := [5]int{38, 34, 30, 20, 19}
-
-	for _, N := range TEST_MOVERS {
+	for N:= 1; N<39; N++ {
 		CANC_TOT := 0
 		COST_TOT := 0
 		var TIME_TOT time.Duration = 0
+
+		moverPolicy = MINIMIZE_ACTIVE_MOVERS
+
+		test:
 
 		for i := 0; i < RUNS; i++ {
 			nMover = N
@@ -28,10 +30,20 @@ func BenchmarkGreedySolver(b *testing.B) {
 			TIME_TOT += elapsed
 		}
 		printTimes(N, nOrder, TIME_TOT, COST_TOT, CANC_TOT)
+
+		if moverPolicy == MAXIMIZE_ACTIVE_MOVERS {
+			continue
+		}
+
+		moverPolicy = MAXIMIZE_ACTIVE_MOVERS
+
+		goto test
 	}
 }
 
 func printTimes(n int, o int, t time.Duration, cost int, canc int) {
+
+	fmt.Printf("\t\tPolicy %d\n", moverPolicy)
 
 	header := ""
 	for i := 0; i < 20; i++ {
