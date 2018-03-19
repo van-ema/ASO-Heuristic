@@ -36,7 +36,7 @@ Usage: orderSchedulingAlgorithm [-i] [-d value] [-m value] [-n value] [-t value]
 
 To execute benchmarks:
 ```
-go test test.bench .
+go test -test.bench .
 ```
 The files "deliveryTime_ist3.csv" and "distanceMatrix_ist3.csv" must be present in the "input" directory.
 We perform measurement on 20, 30, 34 and 38 mover with 205 orders.

@@ -13,7 +13,7 @@ const (
 
 func BenchmarkGreedySolver(b *testing.B) {
 
-	TEST_MOVERS := [4]int{20, 30, 34, 38}
+	TEST_MOVERS := [4]int{2, 3, 4, 5}
 
 	for _, N := range TEST_MOVERS {
 		CANC_TOT := 0
@@ -21,6 +21,7 @@ func BenchmarkGreedySolver(b *testing.B) {
 		var TIME_TOT time.Duration = 0
 
 		for i := 0; i < RUNS; i++ {
+			nMover = N
 			results, elapsed := execute()
 			CANC_TOT += results.nCancelled
 			COST_TOT += results.totalCost

@@ -532,12 +532,13 @@ func getUnfeasibleOrdersPairs(orders *list.List) [][]uint8 {
 
 func execute() (SolverResult, time.Duration) {
 
-	start := time.Now()
 	//distances = utils.CreateOrderMatrix(nOrder, nMover)
 	//deliveryTimes = utils.CreateDeliveryTimeVector(nOrder)
 	distances, deliveryTimes = getInput(nOrder, nMover)
 
 	validateInput()
+
+	start := time.Now()
 
 	results := GreedySolver(nOrder, nMover)
 
