@@ -44,11 +44,11 @@ type Order struct {
 type MoverAssignementPolicy int
 
 const (
-	SAME_COST_LOWER_ID                    MoverAssignementPolicy = 0
-	SAME_COST_LOWER_ASSIGNED_ORDER_NUMBER MoverAssignementPolicy = 1
+	MINIMIZE_ACTIVE_MOVERS MoverAssignementPolicy = 0
+	MAXIMIZE_ACTIVE_MOVERS MoverAssignementPolicy = 1
 )
 
-var moverPolicy = SAME_COST_LOWER_ASSIGNED_ORDER_NUMBER
+var moverPolicy = MAXIMIZE_ACTIVE_MOVERS
 
 type Distances [][]int
 type DeliveryTimeVector []int
@@ -171,9 +171,9 @@ func GreedySolver(nOrder, nMover int) SolverResult {
 		if !cancelledOrderMin {
 
 			switch moverPolicy {
-			case SAME_COST_LOWER_ID:
+			case MINIMIZE_ACTIVE_MOVERS:
 				bestMover = bestMover
-			case SAME_COST_LOWER_ASSIGNED_ORDER_NUMBER:
+			case MAXIMIZE_ACTIVE_MOVERS:
 				mNumOrders := make([]int, nMover)
 				mBestNumb := 0
 				//lowestNumOrder := 0

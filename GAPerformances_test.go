@@ -13,7 +13,7 @@ const (
 
 func BenchmarkGreedySolver(b *testing.B) {
 
-	TEST_MOVERS := [4]int{2, 3, 4, 5}
+	TEST_MOVERS := [5]int{38, 34, 30, 20, 19}
 
 	for _, N := range TEST_MOVERS {
 		CANC_TOT := 0
