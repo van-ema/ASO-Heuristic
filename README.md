@@ -10,7 +10,7 @@ To get details on how to set the GOPATH environment variable read the official d
  
 After the installation of the go compiler to execute the script navigate into the project directory "orderSchedulingAlgorithm" . 
 
-**NOTA**
+**NOTE**
 The input csv files must be placed in the orderSchedulingAlgorithm/input directory.
 
 ```
