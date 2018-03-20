@@ -167,7 +167,6 @@ func GreedySolver(nOrder, nMover int) SolverResult {
 		}
 
 		// The schedule is feasible for bestMover
-		//if bestMover != -1 {
 		if !cancelledOrderMin {
 
 			switch moverPolicy {
@@ -176,20 +175,17 @@ func GreedySolver(nOrder, nMover int) SolverResult {
 			case MAXIMIZE_ACTIVE_MOVERS:
 				mNumOrders := make([]int, nMover)
 				mBestNumb := 0
-				//lowestNumOrder := 0
 				for k, v := range costList {
 
 					if v == minCost {
-						//mIndexMinCost = append(mIndexMinCost, k)
 						mBestNumb++
 						mNumOrders[k] = orderPartitions[k].Len()
-						//lowestNumOrder = orderPartitions[k].Len()
 					} else {
 						mNumOrders[k] = utils.Inf
 					}
 				}
 
-				min := 0 //utils.Inf
+				min := 0
 				for k, v := range mNumOrders {
 					if v <= min {
 						min = v
@@ -197,10 +193,8 @@ func GreedySolver(nOrder, nMover int) SolverResult {
 					}
 				}
 			}
-
 			insert(orderPartitions[bestMover], toSchedule.Value.(*Order))
 			results.nAssigned++
-
 		} else {
 			cancelled.PushFront(toSchedule)
 			results.totalCost += 10
