@@ -159,12 +159,7 @@ func ReadDistanceMatrix(n int) (ordOrd DistMatrix, movOrd DistMatrix) {
 		}
 	}
 
-	//for k, v := range movOrd {
-	//	fmt.Printf("Key: %d,%s Value: %d\n ", k.I, k.N, v[0])
-	//}
-
 	return ordOrd, movOrd
-
 }
 
 func ReadOrdersTargetTime() TargetTimeVector {
@@ -227,7 +222,7 @@ func WriteOrderVectorUint8(filename string, x []uint8, orderIndexToName map[int]
 	file := openFileToWrite(filename)
 	w := csv.NewWriter(file)
 
-	err := w.Write([]string{"order", "x"})
+	err := w.Write(header)
 	checkError("Error in write.", err)
 	for index, value := range x {
 		err := w.Write([]string{orderIndexToName[index], strconv.Itoa(int(value))})
