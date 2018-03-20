@@ -8,7 +8,10 @@ The GOPATH environment variable specifies the location of your workspace and it 
 The project directory "orderSchedulingAlgorithm" must be contained in GOPATH/src directory.
 To get details on how to set the GOPATH environment variable read the official documentation at the section "The GOPATH environment variable" at https://golang.org/doc/code.html
  
-After the installation of the go compiler to execute the script navigate into the project directory "orderSchedulingAlgorithm"
+After the installation of the go compiler to execute the script navigate into the project directory "orderSchedulingAlgorithm" . 
+
+**NOTA**
+The input csv files must be placed in the orderSchedulingAlgorithm/input directory.
 
 ```
 go build .
@@ -42,8 +45,15 @@ Usage: orderSchedulingAlgorithm [-i] [-d value] [-m value] [-n value] [-t value]
 To execute the solver with 205 orders and 20 movers:
 ```
 go build . 
-./orderSchedulingAlgorithm -m 20
+./orderSchedulingAlgorithm -m 20 -n 205 --distanceMat=distanceMatrix_ist3.csv --deliveryTimes=delivertTime_ist3.csv
 ```
+Following the current implementation the given options are the defaults ones. Then the command above is equal to:
+
+```
+go build .
+./orderSchedulingAlgorithm
+```
+
 
 **Benchmarks**
 

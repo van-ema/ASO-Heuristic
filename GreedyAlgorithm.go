@@ -604,10 +604,13 @@ func writeResultsToFile(results SolverResult) {
 	utils.WriteOrderVectorUint8("z2.csv", results.z2, orderIndexToName, []string{"order", "z2"})
 }
 
-func main(){
+func main() {
 	getopt.Parse()
+	utils.DeliveryTimeFilename = "input/" + utils.DeliveryTimeFilename
+	utils.DistanceMatrixFilename = "input/" + utils.DistanceMatrixFilename
 	if !utils.Exist(utils.DeliveryTimeFilename) || !utils.Exist(utils.DistanceMatrixFilename) {
 		getopt.Usage()
+		fmt.Printf("The given files do not exist.\r\n")
 		os.Exit(1)
 	}
 	execute()

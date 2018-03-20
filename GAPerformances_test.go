@@ -5,6 +5,7 @@ import (
 	"testing"
 	"fmt"
 	"strconv"
+	"orderSchedulingAlgorithm/utils"
 )
 
 const (
@@ -12,6 +13,9 @@ const (
 )
 
 func BenchmarkGreedySolver(b *testing.B) {
+
+	utils.DeliveryTimeFilename = "input/"+ utils.DeliveryTimeFilename
+	utils.DistanceMatrixFilename = "input/"+ utils.DistanceMatrixFilename
 
 	for N:= 1; N<39; N++ {
 		CANC_TOT := 0
