@@ -205,7 +205,7 @@ func WriteOrderVectorInt(filename string, x []int, orderIndexToName map[int]stri
 	file := openFileToWrite(filename)
 	w := csv.NewWriter(file)
 
-	err := w.Write([]string{"order", "x"})
+	err := w.Write(header)
 	checkError("Error in write.", err)
 
 	for index, value := range x {
