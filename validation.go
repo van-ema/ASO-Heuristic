@@ -185,7 +185,8 @@ func constraint7(res SolverResult, dist Distances, del DeliveryTimeVector) bool 
 	if DEBUG {
 		printInitMess(7)
 	}
-	for i, val := range res.x {
+	for i := 0; i < res.nOrder; i++ {
+		val := res.x[i]
 		//fmt.Printf("xi = %d, ti = %d\n",val , del[i] )
 		if val < del[i]-15 && res.w[i] == 0 {
 			if DEBUG {
@@ -193,6 +194,7 @@ func constraint7(res SolverResult, dist Distances, del DeliveryTimeVector) bool 
 			}
 			return false
 		}
+
 	}
 	if DEBUG {
 		printPassed()
@@ -204,7 +206,8 @@ func constraint8(res SolverResult, dist Distances, del DeliveryTimeVector) bool 
 	if DEBUG {
 		printInitMess(8)
 	}
-	for i, val := range res.x {
+	for i := 0; i < res.nOrder; i++ {
+		val := res.x[i]
 		//fmt.Printf("xi = %d, ti = %d\n",val , del[i] )
 		if val > del[i]+60 {
 			if DEBUG {
