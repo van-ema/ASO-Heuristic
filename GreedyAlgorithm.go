@@ -91,7 +91,7 @@ func initResults(nOrder, nMover int) (res SolverResult) {
 		y[i] = make([]uint8, nOrder)
 	}
 
-	x := make([]int, nOrder)
+	x := make([]int, nOrder+nMover)
 	w := make([]uint8, nOrder)
 
 	z := make([]uint8, nOrder)
@@ -591,7 +591,7 @@ func validateResults(results SolverResult) bool {
 }
 func writeResultsToFile(results SolverResult) {
 	utils.WriteAdjMatOnFile("y.csv", results.y, orderIndexToName, moverIndexToName)
-	utils.WriteOrderVectorInt("x.csv", results.x, orderIndexToName, []string{"order", "x"})
+	utils.WriteOrderVectorInt("x.csv", results.x, orderIndexToName, moverIndexToName, nOrder, []string{"order", "x"})
 	utils.WriteOrderVectorUint8("w.csv", results.w, orderIndexToName, []string{"order", "w"})
 	utils.WriteOrderVectorUint8("z.csv", results.z, orderIndexToName, []string{"order", "z"})
 	utils.WriteOrderVectorUint8("z1.csv", results.z1, orderIndexToName, []string{"order", "z1"})

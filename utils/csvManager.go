@@ -200,7 +200,7 @@ func WriteAdjMatOnFile(filename string, y [][]uint8, orderIndexToName, moverInde
 	closeFile(file)
 }
 
-func WriteOrderVectorInt(filename string, x []int, orderIndexToName map[int]string, header []string) {
+func WriteOrderVectorInt(filename string, x []int, orderIndexToName, moverIndexToName map[int]string, nOrder int, header []string) {
 
 	file := openFileToWrite(filename)
 	w := csv.NewWriter(file)
@@ -209,8 +209,16 @@ func WriteOrderVectorInt(filename string, x []int, orderIndexToName map[int]stri
 	checkError("Error in write.", err)
 
 	for index, value := range x {
-		err := w.Write([]string{orderIndexToName[index], strconv.Itoa(value)})
-		checkError("Error in write.", err)
+
+		if index < nOrder {
+			err := w.Write([]string{orderIndexToName[index], strconv.Itoa(value)})
+			checkError("Error in write.", err)
+
+		} else {
+			err := w.Write([]string{moverIndexToName[index-nOrder], strconv.Itoa(value)})
+			checkError("Error in write.", err)
+
+		}
 	}
 
 	w.Flush()
