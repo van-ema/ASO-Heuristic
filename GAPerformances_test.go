@@ -10,15 +10,31 @@ import (
 
 const (
 	RUNS = 100
+	DATASET = 1
 )
 
 func BenchmarkGreedySolver(b *testing.B) {
 
-	utils.DeliveryTimeFilename = "input/"+ utils.DeliveryTimeFilename
-	utils.DistanceMatrixFilename = "input/"+ utils.DistanceMatrixFilename
+	var MOVERS int
+	switch (DATASET) {
+	case 1:
+		utils.DeliveryTimeFilename = "input/deliveryTime_ist1.csv"
+		utils.DistanceMatrixFilename = "input/distanceMatrix_ist1.csv"
+		MOVERS = 30
+		nOrder = 175
+	case 2:
+		utils.DeliveryTimeFilename = "input/deliveryTime_ist2.csv"
+		utils.DistanceMatrixFilename = "input/distanceMatrix_ist2.csv"
+		MOVERS = 36
+		nOrder = 179
+	case 3:
+		utils.DeliveryTimeFilename = "input/deliveryTime_ist3.csv"
+		utils.DistanceMatrixFilename = "input/distanceMatrix_ist3.csv"
+		MOVERS = 38
+		nOrder = 205
+	}
 
-	for N:= 1; N<39; N++ {
-
+	for N:= 1; N<=MOVERS; N++ {
 
 		moverPolicy = MINIMIZE_ACTIVE_MOVERS
 

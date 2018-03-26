@@ -41,11 +41,9 @@ type Order struct {
 	cost int    // The cost that the order add to the final solution
 }
 
-type MoverAssignementPolicy int
-
 const (
-	MINIMIZE_ACTIVE_MOVERS MoverAssignementPolicy = 0
-	MAXIMIZE_ACTIVE_MOVERS MoverAssignementPolicy = 1
+	MINIMIZE_ACTIVE_MOVERS = 0
+	MAXIMIZE_ACTIVE_MOVERS = 1
 )
 
 var moverPolicy = MAXIMIZE_ACTIVE_MOVERS
@@ -564,12 +562,14 @@ func init() {
 	getopt.FlagLong(&nOrder, "nOrder", 'n', "number of orders")
 	getopt.FlagLong(&nMover, "nMover", 'm', "number of movers")
 	getopt.FlagLong(&DEBUG, "debug", 'i', "execute in debug mode: Extra output info")
+	getopt.FlagLong(&moverPolicy,"policy", 'p', "policy to balance number of orders among movers")
 }
 
 func printFinal(elapsed time.Duration, results SolverResult) {
 	fmt.Printf("#Order, #Mover\r\n")
 	fmt.Printf("  %d,     %d  \r\n", nOrder, nMover)
 	fmt.Printf("Solver took %s\r\n", elapsed)
+	fmt.Printf("Policy %d\r\n", moverPolicy)
 	fmt.Printf("Total cost: %d\r\n", results.totalCost)
 	fmt.Printf("assigned: %d, cancelled %d\r\n", results.nAssigned, results.nCancelled)
 	fmt.Printf("#order in (15,30] %d\r\n", results.n1)
