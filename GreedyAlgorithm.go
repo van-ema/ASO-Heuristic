@@ -27,8 +27,8 @@ import (
 )
 
 const (
-	ORDER_N = 205 // #Orders
-	MOVER_N = 38  // #Movers
+	ORDER_N = 175 // #Orders
+	MOVER_N = 36  // #Movers
 )
 
 var DEBUG = false

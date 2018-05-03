@@ -10,14 +10,23 @@ import (
 
 const (
 	RUNS = 100
+	DATASET_1_ORDERS = 175
+	DATASET_1_MOVERS = 30
+	DATASET_2_ORDERS = 176
+	DATASET_2_MOVERS = 36
+	DATASET_3_ORDERS = 205
+	DATASET_3_MOVERS = 38
 )
 
 func BenchmarkGreedySolver(b *testing.B) {
 
-	utils.DeliveryTimeFilename = "input/"+ utils.DeliveryTimeFilename
-	utils.DistanceMatrixFilename = "input/"+ utils.DistanceMatrixFilename
+	utils.DeliveryTimeFilename = "input/deliveryTime_ist2.csv" //+ utils.DeliveryTimeFilename
+	utils.DistanceMatrixFilename = "input/distanceMatrix_ist2.csv" //+ utils.DistanceMatrixFilename
 
-	for N:= 1; N<39; N++ {
+	nOrder = DATASET_2_ORDERS
+	//nMover = DATASET_1_MOVERS
+
+	for N:= 1; N <= DATASET_2_MOVERS; N++ {
 
 
 		moverPolicy = MINIMIZE_ACTIVE_MOVERS
@@ -49,7 +58,13 @@ func BenchmarkGreedySolver(b *testing.B) {
 
 func printTimes(n int, o int, t time.Duration, cost int, canc int) {
 
-	fmt.Printf("\t\tPolicy %d\n", moverPolicy)
+	switch {
+	case moverPolicy == 0:
+		fmt.Println("\tPolicy MINIMIZE_ACTIVE_MOVERS")
+	case moverPolicy == 1:
+		fmt.Println("\tPolicy MAXIMIZE_ACTIVE_MOVERS")
+	}
+	//fmt.Printf("\t\tPolicy %d\n", moverPolicy)
 
 	header := ""
 	for i := 0; i < 20; i++ {
