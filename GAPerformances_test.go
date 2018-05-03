@@ -16,10 +16,29 @@ const (
 	DATASET_2_MOVERS = 36
 	DATASET_3_ORDERS = 205
 	DATASET_3_MOVERS = 38
+	DATASET = 1
 )
 
 func BenchmarkGreedySolver(b *testing.B) {
 
+	var MOVERS int
+	switch (DATASET) {
+	case 1:
+		utils.DeliveryTimeFilename = "input/deliveryTime_ist1.csv"
+		utils.DistanceMatrixFilename = "input/distanceMatrix_ist1.csv"
+		MOVERS = 30
+		nOrder = 175
+	case 2:
+		utils.DeliveryTimeFilename = "input/deliveryTime_ist2.csv"
+		utils.DistanceMatrixFilename = "input/distanceMatrix_ist2.csv"
+		MOVERS = 36
+		nOrder = 179
+	case 3:
+		utils.DeliveryTimeFilename = "input/deliveryTime_ist3.csv"
+		utils.DistanceMatrixFilename = "input/distanceMatrix_ist3.csv"
+		MOVERS = 38
+		nOrder = 205
+	}
 	utils.DeliveryTimeFilename = "input/deliveryTime_ist2.csv" //+ utils.DeliveryTimeFilename
 	utils.DistanceMatrixFilename = "input/distanceMatrix_ist2.csv" //+ utils.DistanceMatrixFilename
 
@@ -28,6 +47,7 @@ func BenchmarkGreedySolver(b *testing.B) {
 
 	for N:= 1; N <= DATASET_2_MOVERS; N++ {
 
+	for N:= 1; N<=MOVERS; N++ {
 
 		moverPolicy = MINIMIZE_ACTIVE_MOVERS
 
