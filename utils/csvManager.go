@@ -257,7 +257,7 @@ func WriteResultsTable(filename string, res [][]int, header []string) {
 			strconv.Itoa(val[5]),
 			strconv.Itoa(val[6]),
 			strconv.Itoa(val[7]),
-			strconv.Itoa(val[8]),
+			//strconv.Itoa(val[8]),
 			})
 		checkError("Error in write.", err)
 
