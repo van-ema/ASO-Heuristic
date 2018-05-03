@@ -42,12 +42,12 @@ func strArrToIntArr(v []string) []int {
 }
 
 func strToInt(s string) int {
-	i, err := strconv.Atoi(s)
+	i, err := strconv.ParseFloat(s, 64)
 	if err != nil {
 		log.Fatal(err)
 		return -1
 	}
-	return i
+	return int(i)
 }
 
 /**

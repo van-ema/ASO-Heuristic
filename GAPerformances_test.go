@@ -3,13 +3,10 @@ package main
 import (
 	"time"
 	"testing"
-	"fmt"
-	"strconv"
 	"orderSchedulingAlgorithm/utils"
 )
 
 const (
-	RUNS = 100
 	DATASET_1_ORDERS = 175
 	DATASET_1_MOVERS = 30
 	DATASET_2_ORDERS = 176
@@ -21,23 +18,16 @@ const (
 
 func BenchmarkGreedySolver(b *testing.B) {
 
-	var MOVERS int
 	switch (DATASET) {
 	case 1:
 		utils.DeliveryTimeFilename = "input/deliveryTime_ist1.csv"
 		utils.DistanceMatrixFilename = "input/distanceMatrix_ist1.csv"
-		MOVERS = 30
-		nOrder = 175
 	case 2:
 		utils.DeliveryTimeFilename = "input/deliveryTime_ist2.csv"
 		utils.DistanceMatrixFilename = "input/distanceMatrix_ist2.csv"
-		MOVERS = 36
-		nOrder = 179
 	case 3:
 		utils.DeliveryTimeFilename = "input/deliveryTime_ist3.csv"
 		utils.DistanceMatrixFilename = "input/distanceMatrix_ist3.csv"
-		MOVERS = 38
-		nOrder = 205
 	}
 	utils.DeliveryTimeFilename = "input/deliveryTime_ist2.csv"     //+ utils.DeliveryTimeFilename
 	utils.DistanceMatrixFilename = "input/distanceMatrix_ist2.csv" //+ utils.DistanceMatrixFilename
@@ -45,9 +35,7 @@ func BenchmarkGreedySolver(b *testing.B) {
 	nOrder = DATASET_2_ORDERS
 	//nMover = DATASET_1_MOVERS
 
-	for N := 1; N <= DATASET_2_MOVERS; N++ {
-
-		for N := 1; N <= MOVERS; N++ {
+	for N:= 30; N<=DATASET_2_MOVERS; N++ {
 
 			moverPolicy = MINIMIZE_ACTIVE_MOVERS
 
@@ -64,7 +52,7 @@ func BenchmarkGreedySolver(b *testing.B) {
 				COST_TOT += results.totalCost
 				TIME_TOT += elapsed
 			}
-			printTimes(N, nOrder-CANC_TOT/RUNS, TIME_TOT/RUNS, COST_TOT/RUNS, CANC_TOT/RUNS)
+			printTimes(N, nOrder-CANC_TOT/RUNS, TIME_TOT/RUNS, COST_TOT/RUNS, CANC_TOT/RUNS, DATASET)
 
 			if moverPolicy == MAXIMIZE_ACTIVE_MOVERS {
 				continue
@@ -73,37 +61,5 @@ func BenchmarkGreedySolver(b *testing.B) {
 			moverPolicy = MAXIMIZE_ACTIVE_MOVERS
 
 			goto test
-		}
 	}
-}
-
-func printTimes(n int, o int, t time.Duration, cost int, canc int) {
-
-	switch {
-	case moverPolicy == 0:
-		fmt.Println("\tPolicy MINIMIZE_ACTIVE_MOVERS")
-	case moverPolicy == 1:
-		fmt.Println("\tPolicy MAXIMIZE_ACTIVE_MOVERS")
-	}
-	//fmt.Printf("\t\tPolicy %d\n", moverPolicy)
-
-	header := ""
-	for i := 0; i < 20; i++ {
-		header += "-"
-	}
-
-	header += strconv.Itoa(n) + " " + "MOVERS"
-	for i := 0; i < 20; i++ {
-		header += "-"
-	}
-	header+= "\n\t\t"
-	fmt.Printf(header)
-
-	fmt.Printf(
-		"RESULTS AVERAGED AMONG %d RUNS"+
-			"\n\t\t%d ORDERS ASSIGNED IN %v"+
-			"\n\t\t%d CANCELED ORDERS"+
-			"\n\t\tTOTAL COST = %d \n", RUNS, o, t, canc, cost)
-
-	fmt.Printf("\n\n")
 }

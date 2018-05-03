@@ -25,8 +25,8 @@ import (
 )
 
 const (
-	DELIVERY_TIME_FILENAME = "deliveryTime_ist1.csv"
-	DISTANCE_MAT_FILENAME  = "distanceMatrix_ist1.csv"
+	DELIVERY_TIME_FILENAME = "deliveryTime_ist2.csv"
+	DISTANCE_MAT_FILENAME  = "distanceMatrix_ist2.csv"
 )
 
 var (
@@ -107,7 +107,7 @@ func openFileToRead(filename string) *os.File {
 	var err error
 
 	file, err = os.OpenFile(filename, os.O_RDONLY, 0755)
-	checkError("Error in opening file", err)
+	checkError("Error in opening file ", err)
 
 	return file
 }
@@ -173,9 +173,7 @@ func ReadOrdersTargetTime() TargetTimeVector {
 		}
 		data[v[0]] = strToInt(v[1])
 	}
-
 	return data
-
 }
 
 /**
@@ -242,3 +240,31 @@ func WriteOrderVectorUint8(filename string, x []uint8, orderIndexToName map[int]
 
 	closeFile(file)
 }
+
+func WriteResultsTable(filename string, res [][]int, header []string) {
+	file := openFileToWrite(filename)
+	w := csv.NewWriter(file)
+
+	err := w.Write(header)
+	checkError("Error in write.", err)
+	for _, val := range res {
+		err := w.Write([]string{
+			strconv.Itoa(val[0]),
+			strconv.Itoa(val[1]),
+			strconv.Itoa(val[2]),
+			strconv.Itoa(val[3]),
+			strconv.Itoa(val[4]),
+			strconv.Itoa(val[5]),
+			strconv.Itoa(val[6]),
+			strconv.Itoa(val[7]),
+			strconv.Itoa(val[8]),
+			})
+		checkError("Error in write.", err)
+
+	}
+
+	w.Flush()
+
+	closeFile(file)
+}
+
