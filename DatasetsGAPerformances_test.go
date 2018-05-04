@@ -23,7 +23,7 @@ func BenchmarkDatasetsGreedySolver(b *testing.B) {
 	var res_max [][]int
 	var res_min [][]int
 
-	for i := 2; i <= DATASETS; i++ {
+	for i := 2; i <= 2; i++ {
 
 		utils.DeliveryTimeFilename = DELIVERY_TIME_PATH + strconv.Itoa(i)+CSV
 		utils.DistanceMatrixFilename = DISTANCE_MATRIX_PATH + strconv.Itoa(i)+CSV
@@ -31,7 +31,7 @@ func BenchmarkDatasetsGreedySolver(b *testing.B) {
 		execute()
 		N := nMover
 
-		for n:=25; n<N; n++ {
+		for n:=25; n<=N; n++ {
 
 				moverPolicy = MINIMIZE_ACTIVE_MOVERS
 
