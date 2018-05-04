@@ -163,7 +163,7 @@ func constraint6(res SolverResult, dist Distances, del DeliveryTimeVector) bool 
 	for i := 0; i < res.nOrder+res.nMover; i++ {
 		for j := 0; j < res.nOrder; j++ {
 			if i >= res.nOrder { /* mover */
-				otherDel = 0
+				otherDel = -1
 			} else { /* order */
 				otherDel = res.x[i]
 			}

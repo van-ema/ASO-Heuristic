@@ -12,8 +12,8 @@ const (
 	DELIVERY_TIME_PATH = "datasets/deliveryTime_ist"
 	DISTANCE_MATRIX_PATH = "datasets/distanceMatrix_ist"
 	CSV = ".csv"
-	DATASETS = 2
-	RUNS = 100
+	DATASETS = 34
+	RUNS = 1
 	TABLE_MAXIMIZE_FILE_PATH = "results/table_maximize_policy.csv"
 	TABLE_MINIMIZE_FILE_PATH = "results/table_minimize_policy.csv"
 )
@@ -43,7 +43,7 @@ func BenchmarkDatasetsGreedySolver(b *testing.B) {
 				Z1_TOT:= 0
 				Z2_TOT := 0
 				var TIME_TOT time.Duration = 0
-				for i := 0; i < RUNS; i++ {
+				for j := 0; j < RUNS; j++ {
 					nMover = n
 					results, elapsed := execute()
 					CANC_TOT += results.nCancelled
