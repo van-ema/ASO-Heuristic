@@ -74,6 +74,9 @@ func BenchmarkDatasetsGreedySolver(b *testing.B) {
 				goto test
 		}
 
+		nMover = -1
+		nOrder = -1
+
 	}
 	utils.WriteResultsTable(TABLE_MAXIMIZE_FILE_PATH, res_max, []string{"id shift","num moover","num ordini","fo","sumz","sumz1", "sumz2","sumw"})
 	utils.WriteResultsTable(TABLE_MINIMIZE_FILE_PATH, res_min, []string{"id shift","num moover","num ordini","fo","sumz","sumz1", "sumz2","sumw"})
