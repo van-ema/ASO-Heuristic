@@ -14,8 +14,8 @@ const (
 	CSV = ".csv"
 	DATASETS = 2
 	RUNS = 100
-	TABLE_MAXIMIZE_FILE_PATH = "results/table_maximize_policy.csv";
-	TABLE_MINIMIZE_FILE_PATH = "results/table_minimize_policy.csv";
+	TABLE_MAXIMIZE_FILE_PATH = "results/table_maximize_policy.csv"
+	TABLE_MINIMIZE_FILE_PATH = "results/table_minimize_policy.csv"
 )
 
 func BenchmarkDatasetsGreedySolver(b *testing.B) {

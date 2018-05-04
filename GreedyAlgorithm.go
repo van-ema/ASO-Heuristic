@@ -33,7 +33,7 @@ var (
 	MOVER_N = -1  // #Movers if not specified
 )
 
-var DEBUG = false
+var DEBUG = true
 
 type Order struct {
 	id   int    // order's id
@@ -236,7 +236,9 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 	cancelled = false
 	// keep the last assigned order
 	var lastOrder = new(Order)
-	lastOrder.x = 0
+
+	// TODO mover starts 5 min early
+	lastOrder.x = -1 //0
 	lastOrder.id = nOrder + mover
 
 	length := orders.Len()
@@ -647,8 +649,8 @@ func writeResultsToFile(results SolverResult) {
 
 func main() {
 	getopt.Parse()
-	utils.DeliveryTimeFilename = "input/" + utils.DeliveryTimeFilename
-	utils.DistanceMatrixFilename = "input/" + utils.DistanceMatrixFilename
+	utils.DeliveryTimeFilename = "datasets/" + utils.DeliveryTimeFilename
+	utils.DistanceMatrixFilename = "datasets/" + utils.DistanceMatrixFilename
 	if !utils.Exist(utils.DeliveryTimeFilename) || !utils.Exist(utils.DistanceMatrixFilename) {
 		getopt.Usage()
 		fmt.Printf("The given files do not exist.\r\n")
