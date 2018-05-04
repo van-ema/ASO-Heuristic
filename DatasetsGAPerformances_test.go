@@ -54,12 +54,12 @@ func BenchmarkDatasetsGreedySolver(b *testing.B) {
 					Z2_TOT += results.n3
 				}
 
-			switch moverPolicy {
-			case MINIMIZE_ACTIVE_MOVERS:
-				res_min = append(res_min, []int{i, n, nOrder, COST_TOT/RUNS, Z_TOT/RUNS , Z1_TOT/RUNS, Z2_TOT/RUNS, CANC_TOT/RUNS})
-			case MAXIMIZE_ACTIVE_MOVERS:
-				res_max = append(res_max, []int{i, n, nOrder, COST_TOT/RUNS, Z_TOT/RUNS , Z1_TOT/RUNS, Z2_TOT/RUNS, CANC_TOT/RUNS})
-			}
+				switch moverPolicy {
+				case MINIMIZE_ACTIVE_MOVERS:
+					res_min = append(res_min, []int{i, n, nOrder, COST_TOT/RUNS, Z_TOT/RUNS , Z1_TOT/RUNS, Z2_TOT/RUNS, CANC_TOT/RUNS})
+				case MAXIMIZE_ACTIVE_MOVERS:
+					res_max = append(res_max, []int{i, n, nOrder, COST_TOT/RUNS, Z_TOT/RUNS , Z1_TOT/RUNS, Z2_TOT/RUNS, CANC_TOT/RUNS})
+				}
 					// policy|id shift|num moover|num ordini| f.o.| sum(z) | sum(z1)| sum(z2)| sum(w)
 				//res = append(res, []int{moverPolicy, i, n, nOrder, COST_TOT/RUNS, Z_TOT/RUNS , Z1_TOT/RUNS, Z2_TOT/RUNS, CANC_TOT/RUNS})
 
