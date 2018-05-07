@@ -12,7 +12,7 @@ const (
 	DELIVERY_TIME_PATH = "datasets/deliveryTime_ist"
 	DISTANCE_MATRIX_PATH = "datasets/distanceMatrix_ist"
 	CSV = ".csv"
-	DATASETS = 34
+	DATASETS = 35
 	RUNS = 1
 	TABLE_MAXIMIZE_FILE_PATH = "results/table_maximize_policy.csv"
 	TABLE_MINIMIZE_FILE_PATH = "results/table_minimize_policy.csv"
@@ -23,15 +23,15 @@ func BenchmarkDatasetsGreedySolver(b *testing.B) {
 	var res_max [][]int
 	var res_min [][]int
 
-	for i := 2; i <= 2; i++ {
+	for i := 2; i <= DATASETS; i++ {
 
 		utils.DeliveryTimeFilename = DELIVERY_TIME_PATH + strconv.Itoa(i)+CSV
 		utils.DistanceMatrixFilename = DISTANCE_MATRIX_PATH + strconv.Itoa(i)+CSV
 
-		execute()
+		getInput()
 		N := nMover
 
-		for n:=25; n<=N; n++ {
+		for n:=10; n<=N; n++ {
 
 				moverPolicy = MINIMIZE_ACTIVE_MOVERS
 
