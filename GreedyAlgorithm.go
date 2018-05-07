@@ -238,7 +238,7 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 	var lastOrder = new(Order)
 
 	// TODO mover starts 5 min early
-	lastOrder.x = -1 //0
+	//lastOrder.x = -1 //0
 	lastOrder.id = nOrder + mover
 
 	length := orders.Len()
@@ -333,6 +333,7 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 	if results != nil {
 		moverOrder := new(Order)
 		moverOrder.id = mover + nOrder
+		moverOrder.x = -1 // TODO check
 		orders.PushFront(moverOrder)
 
 		for e := orders.Front(); e != nil; e = e.Next() {
