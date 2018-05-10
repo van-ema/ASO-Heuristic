@@ -29,13 +29,13 @@ func BenchmarkGreedySolver(b *testing.B) {
 		utils.DeliveryTimeFilename = "input/deliveryTime_ist3.csv"
 		utils.DistanceMatrixFilename = "input/distanceMatrix_ist3.csv"
 	}
-	utils.DeliveryTimeFilename = "input/deliveryTime_ist2.csv"     //+ utils.DeliveryTimeFilename
-	utils.DistanceMatrixFilename = "input/distanceMatrix_ist2.csv" //+ utils.DistanceMatrixFilename
+	utils.DeliveryTimeFilename = "datasets/deliveryTime_ist2.csv"     //+ utils.DeliveryTimeFilename
+	utils.DistanceMatrixFilename = "datasets/distanceMatrix_ist2.csv" //+ utils.DistanceMatrixFilename
 
-	nOrder = DATASET_2_ORDERS
-	//nMover = DATASET_1_MOVERS
+	nOrder = 239
+	nMover = 36
 
-	for N:= 30; N<=DATASET_2_MOVERS; N++ {
+	for N:= 28; N<=36; N++ {
 
 			moverPolicy = MINIMIZE_ACTIVE_MOVERS
 
@@ -45,14 +45,13 @@ func BenchmarkGreedySolver(b *testing.B) {
 			COST_TOT := 0
 			var TIME_TOT time.Duration = 0
 
-			for i := 0; i < RUNS; i++ {
-				nMover = N
-				results, elapsed := execute()
-				CANC_TOT += results.nCancelled
-				COST_TOT += results.totalCost
-				TIME_TOT += elapsed
-			}
-			printTimes(N, nOrder-CANC_TOT/RUNS, TIME_TOT/RUNS, COST_TOT/RUNS, CANC_TOT/RUNS, DATASET)
+			nMover = N
+			results, elapsed := execute()
+			CANC_TOT += results.nCancelled
+			COST_TOT += results.totalCost
+			TIME_TOT += elapsed
+
+			printTimes(N, nOrder-CANC_TOT, TIME_TOT, COST_TOT, CANC_TOT, DATASET)
 
 			if moverPolicy == MAXIMIZE_ACTIVE_MOVERS {
 				continue

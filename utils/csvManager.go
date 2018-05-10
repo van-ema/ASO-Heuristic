@@ -22,11 +22,13 @@ import (
 	"encoding/csv"
 	"io"
 	"strconv"
+	"time"
+	"strings"
 )
 
 const (
-	DELIVERY_TIME_FILENAME = "deliveryTime_ist2.csv"
-	DISTANCE_MAT_FILENAME  = "distanceMatrix_ist2.csv"
+	DELIVERY_TIME_FILENAME = "deliveryTime_ist3.csv"
+	DISTANCE_MAT_FILENAME  = "distanceMatrix_ist3.csv"
 )
 
 var (
@@ -257,7 +259,6 @@ func WriteResultsTable(filename string, res [][]int, header []string) {
 			strconv.Itoa(val[5]),
 			strconv.Itoa(val[6]),
 			strconv.Itoa(val[7]),
-			//strconv.Itoa(val[8]),
 			})
 		checkError("Error in write.", err)
 
@@ -268,3 +269,33 @@ func WriteResultsTable(filename string, res [][]int, header []string) {
 	closeFile(file)
 }
 
+
+func durationToString(t time.Duration) string {
+	s := t.String()
+	if strings.HasSuffix(s, "m0s") {
+		s = s[:len(s)-2]
+	}
+	if strings.HasSuffix(s, "h0m") {
+		s = s[:len(s)-2]
+	}
+	return s
+}
+
+func WriteResultsTimes(filename string, ist int, times []time.Duration, header []string) {
+	file := openFileToWrite(filename)
+	w := csv.NewWriter(file)
+
+	err := w.Write(header)
+	checkError("Error in write.", err)
+	for index:=0; index<ist; index++ {
+		err := w.Write([]string{
+			strconv.Itoa(index),
+			durationToString(times[index]),
+		})
+		checkError("Error in write.", err)
+	}
+
+	w.Flush()
+
+	closeFile(file)
+}
