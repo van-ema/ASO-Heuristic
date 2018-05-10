@@ -9,29 +9,32 @@ import (
 )
 
 const (
-	DELIVERY_TIME_PATH = "datasets/deliveryTime_ist"
-	DISTANCE_MATRIX_PATH = "datasets/distanceMatrix_ist"
+	DELIVERY_TIME_PATH = "datasets_alpha/deliveryTime_ist"
+	DISTANCE_MATRIX_PATH = "datasets_alpha/distanceMatrix_ist"
 	CSV = ".csv"
 	DATASETS = 35
-	RUNS = 1
 	TABLE_MAXIMIZE_FILE_PATH = "results/table_maximize_policy.csv"
 	TABLE_MINIMIZE_FILE_PATH = "results/table_minimize_policy.csv"
+	TIME_MINIMIZE_FILE_PATH = "results/times_minimize.csv"
+	TIME_MAXIMIZE_FILE_PATH = "results/times_maximize.csv"
 )
 
 func BenchmarkDatasetsGreedySolver(b *testing.B) {
 
 	var res_max [][]int
 	var res_min [][]int
+	var times_min []time.Duration
+	var times_max []time.Duration
 
 	for i := 2; i <= DATASETS; i++ {
 
 		utils.DeliveryTimeFilename = DELIVERY_TIME_PATH + strconv.Itoa(i)+CSV
 		utils.DistanceMatrixFilename = DISTANCE_MATRIX_PATH + strconv.Itoa(i)+CSV
 
-		getInput()
+		execute()
 		N := nMover
 
-		for n:=10; n<=N; n++ {
+		for n:=25; n<=N; n++ {
 
 				moverPolicy = MINIMIZE_ACTIVE_MOVERS
 
@@ -43,27 +46,26 @@ func BenchmarkDatasetsGreedySolver(b *testing.B) {
 				Z1_TOT:= 0
 				Z2_TOT := 0
 				var TIME_TOT time.Duration = 0
-				for j := 0; j < RUNS; j++ {
-					nMover = n
-					results, elapsed := execute()
-					CANC_TOT += results.nCancelled
-					COST_TOT += results.totalCost
-					TIME_TOT += elapsed
-					Z_TOT += results.n1
-					Z1_TOT += results.n2
-					Z2_TOT += results.n3
-				}
+
+				nMover = n
+				results, elapsed := execute()
+				CANC_TOT += results.nCancelled
+				COST_TOT += results.totalCost
+				TIME_TOT += elapsed
+				Z_TOT += results.n1
+				Z1_TOT += results.n2
+				Z2_TOT += results.n3
 
 				switch moverPolicy {
 				case MINIMIZE_ACTIVE_MOVERS:
-					res_min = append(res_min, []int{i, n, nOrder, COST_TOT/RUNS, Z_TOT/RUNS , Z1_TOT/RUNS, Z2_TOT/RUNS, CANC_TOT/RUNS})
+					times_min = append(times_min, TIME_TOT)
+					res_min = append(res_min, []int{i, n, nOrder, COST_TOT , Z_TOT  , Z1_TOT , Z2_TOT, CANC_TOT})
 				case MAXIMIZE_ACTIVE_MOVERS:
-					res_max = append(res_max, []int{i, n, nOrder, COST_TOT/RUNS, Z_TOT/RUNS , Z1_TOT/RUNS, Z2_TOT/RUNS, CANC_TOT/RUNS})
+					times_max = append(times_max, TIME_TOT)
+					res_max = append(res_max, []int{i, n, nOrder, COST_TOT, Z_TOT , Z1_TOT, Z2_TOT, CANC_TOT})
 				}
-					// policy|id shift|num moover|num ordini| f.o.| sum(z) | sum(z1)| sum(z2)| sum(w)
-				//res = append(res, []int{moverPolicy, i, n, nOrder, COST_TOT/RUNS, Z_TOT/RUNS , Z1_TOT/RUNS, Z2_TOT/RUNS, CANC_TOT/RUNS})
 
-				printTimes(n, nOrder-CANC_TOT/RUNS, TIME_TOT/RUNS, COST_TOT/RUNS, CANC_TOT/RUNS, i)
+				printTimes(n, nOrder-CANC_TOT, TIME_TOT, COST_TOT, CANC_TOT, i)
 
 				if moverPolicy == MAXIMIZE_ACTIVE_MOVERS {
 					continue
@@ -80,6 +82,8 @@ func BenchmarkDatasetsGreedySolver(b *testing.B) {
 	}
 	utils.WriteResultsTable(TABLE_MAXIMIZE_FILE_PATH, res_max, []string{"id shift","num moover","num ordini","fo","sumz","sumz1", "sumz2","sumw"})
 	utils.WriteResultsTable(TABLE_MINIMIZE_FILE_PATH, res_min, []string{"id shift","num moover","num ordini","fo","sumz","sumz1", "sumz2","sumw"})
+	utils.WriteResultsTimes(TIME_MINIMIZE_FILE_PATH, DATASETS, times_min, []string{"id shift","exec time"})
+	utils.WriteResultsTimes(TIME_MAXIMIZE_FILE_PATH, DATASETS, times_max, []string{"id shift","exec time"})
 }
 
 func printTimes(n int, o int, t time.Duration, cost int, canc int, ist int) {
@@ -90,7 +94,6 @@ func printTimes(n int, o int, t time.Duration, cost int, canc int, ist int) {
 	case moverPolicy == 1:
 		fmt.Println("\tPolicy MAXIMIZE_ACTIVE_MOVERS")
 	}
-	//fmt.Printf("\t\tPolicy %d\n", moverPolicy)
 
 	header := ""
 	for i := 0; i < 20; i++ {
@@ -109,14 +112,10 @@ func printTimes(n int, o int, t time.Duration, cost int, canc int, ist int) {
 	fmt.Printf(header)
 
 	fmt.Printf(
-		"RESULTS AVERAGED AMONG %d RUNS"+
+		"RESULTS"+
 			"\n\t\t%d ORDERS ASSIGNED IN %v"+
 			"\n\t\t%d CANCELED ORDERS"+
-			"\n\t\tTOTAL COST = %d \n", RUNS, o, t, canc, cost)
-	//+
-	//		"\n\t\t%d orders in (3,6]\n"+
-	//		"\n\t\t%d orders in (6,9]\n"+
-	//		"\n\t\t%d orders in (9,12]\n", RUNS, o, t, canc, cost, n1, n2, n3)
+			"\n\t\tTOTAL COST = %d \n", o, t, canc, cost)
 
 	fmt.Printf("\n\n")
 }
