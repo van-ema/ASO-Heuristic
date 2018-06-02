@@ -29,8 +29,8 @@ import (
 )
 
 var (
-	ORDER_N = -1  // #Orders if not specified
-	MOVER_N = -1  // #Movers if not specified
+	ORDER_N = -1 // #Orders if not specified
+	MOVER_N = -1 // #Movers if not specified
 )
 
 var DEBUG = true
@@ -236,9 +236,11 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 	cancelled = false
 	// keep the last assigned order
 	var lastOrder = new(Order)
+	var assigned = false
+	var position = -1
+	var forbidden []int
 
-	// TODO mover starts 5 min early
-	lastOrder.x = -1 //0
+	lastOrder.x = -1
 	lastOrder.id = nOrder + mover
 
 	length := orders.Len()
@@ -257,7 +259,6 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 		for j := 0; j < length; j++ {
 
 			order := current.Value.(*Order)
-
 			newCost, nextDeliveryTime, orderCancelled := computeCost(lastOrder.id, lastOrder.x, order)
 
 			// If costs are equals we choose the order with the lower id
@@ -285,7 +286,7 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 		}
 
 		// Check if the new order can be scheduled
-		if newOrderElem != nil {
+		if newOrderElem != nil && !assigned && !isForbidden(forbidden, i) {
 
 			newOrder := newOrderElem.Value.(*Order)
 			newCost, nextDeliveryTime, newOrderCancelled := computeCost(lastOrder.id, lastOrder.x, newOrder)
@@ -296,6 +297,7 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 				bestDeliveryTime = nextDeliveryTime
 
 				cancelled = newOrderCancelled
+				position = i
 
 			} else if newCost == minCost && nextDeliveryTime == bestDeliveryTime &&
 				minOrderElem != nil {
@@ -306,10 +308,39 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 					bestDeliveryTime = nextDeliveryTime
 
 					cancelled = newOrderCancelled
+					position = i
 				}
 
 			}
 
+		}
+
+		if minOrderElem == nil {
+			fmt.Println("Unexpected error")
+			os.Exit(1)
+		}
+
+		if cancelled && minOrderElem != newOrderElem && position != -1 && i != iteration-1 {
+			forbidden = append(forbidden, i)
+
+			cost = 0
+			cancelled = false
+			assigned = false
+
+			// keep the last assigned order
+			lastOrder = new(Order)
+			lastOrder.x = -1
+			lastOrder.id = nOrder + mover
+
+			length = orders.Len()
+			iteration = length
+			if newOrderElem != nil {
+				iteration += 1
+			}
+
+			i = 0
+			position = -1
+			continue
 		}
 
 		// schedule is feasible
@@ -323,7 +354,7 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 			orders.MoveToBack(minOrderElem)
 			length--
 		} else {
-			newOrderElem = nil
+			assigned = true
 		}
 
 		lastOrder = minOrder
@@ -366,6 +397,17 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 
 	return cost, cancelled
 
+}
+
+func isForbidden(slice []int, value int) bool {
+
+	for _, v := range slice {
+		if v == value {
+			return true
+		}
+	}
+
+	return false
 }
 
 // orders allocation and initialization with delivery times
@@ -430,7 +472,6 @@ func computeCost(lastOrderId int, lastDeliveryTime int, nextOrder *Order) (cost 
 
 func getInput() (distMat Distances, deliveryTime DeliveryTimeVector) {
 
-
 	/* read from file */
 
 	deliveryTimesMap := utils.ReadOrdersTargetTime()
@@ -440,7 +481,6 @@ func getInput() (distMat Distances, deliveryTime DeliveryTimeVector) {
 	}
 
 	orderOrderDisMat, moverOrderDistMat := utils.ReadDistanceMatrix(nOrder)
-
 
 	if len(moverOrderDistMat) < nMover {
 		fmt.Printf("too many mover! The distances matrix contains only %d mover \r\n", len(moverOrderDistMat))
@@ -554,7 +594,7 @@ func execute() (SolverResult, time.Duration) {
 
 	elapsed := time.Since(start)
 
-	validateResults(results)
+	//validateResults(results)
 
 	writeResultsToFile(results)
 
@@ -567,7 +607,7 @@ func execute() (SolverResult, time.Duration) {
 
 func validateInput() {
 	if len(deliveryTimes) != nOrder {
-		fmt.Printf("len of delivery time vector %d != #orders %d\r\n",len(deliveryTimes),nOrder)
+		fmt.Printf("len of delivery time vector %d != #orders %d\r\n", len(deliveryTimes), nOrder)
 		getopt.Usage()
 		os.Exit(1)
 	}
@@ -580,7 +620,7 @@ func init() {
 	getopt.FlagLong(&nOrder, "nOrder", 'n', "number of orders")
 	getopt.FlagLong(&nMover, "nMover", 'm', "number of movers")
 	getopt.FlagLong(&DEBUG, "debug", 'i', "execute in debug mode: Extra output info")
-	getopt.FlagLong(&moverPolicy,"policy", 'p', "policy to balance number of orders among movers")
+	getopt.FlagLong(&moverPolicy, "policy", 'p', "policy to balance number of orders among movers")
 }
 
 func printFinal(elapsed time.Duration, results SolverResult) {
@@ -594,37 +634,38 @@ func printFinal(elapsed time.Duration, results SolverResult) {
 	fmt.Printf("#order in (6,9] %d\r\n", results.n2)
 	fmt.Printf("#order in (9,12] %d\r\n", results.n3)
 }
-func validateResults(results SolverResult) bool {
-	if Validate(results, distances, deliveryTimes) {
-		if DEBUG {
-			fmt.Printf("The solution is admissible\r\n")
-		}
-		return true
-	}
-	if DEBUG {
-		fmt.Printf("The solution is NOT admissible\r\n")
-	}
-	return false
 
-}
+//func validateResults(results SolverResult) bool {
+//	if Validate(results, distances, deliveryTimes) {
+//		if DEBUG {
+//			fmt.Printf("The solution is admissible\r\n")
+//		}
+//		return true
+//	}
+//	if DEBUG {
+//		fmt.Printf("The solution is NOT admissible\r\n")
+//	}
+//	return false
+//
+//}
 
 func createOutputPath() string {
 	begin := strings.Index(utils.DeliveryTimeFilename, "ist")
 	end := strings.Index(utils.DeliveryTimeFilename, ".")
 	ist := utils.DeliveryTimeFilename[begin:end]
 
-	pathList := []string{"results","results/"+ist}
+	pathList := []string{"results", "results/" + ist}
 
 	output := ""
 	if moverPolicy == 0 {
-		dir := pathList[1]+"/minimize_active_movers/"
-		rel := dir+strconv.Itoa(nMover)+"/"
+		dir := pathList[1] + "/minimize_active_movers/"
+		rel := dir + strconv.Itoa(nMover) + "/"
 		pathList = append(pathList, dir)
 		pathList = append(pathList, rel)
 		output += rel
 	} else {
-		dir := pathList[1]+"/maximize_active_movers/"
-		rel := dir+strconv.Itoa(nMover)+"/"
+		dir := pathList[1] + "/maximize_active_movers/"
+		rel := dir + strconv.Itoa(nMover) + "/"
 		pathList = append(pathList, dir)
 		pathList = append(pathList, rel)
 		output += rel
