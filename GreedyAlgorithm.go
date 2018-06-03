@@ -29,8 +29,8 @@ import (
 )
 
 var (
-	ORDER_N = -1 // #Orders if not specified
-	MOVER_N = -1 // #Movers if not specified
+	ORDER_N = 169 // #Orders if not specified
+	MOVER_N = 29  // #Movers if not specified
 )
 
 var DEBUG = true
@@ -253,7 +253,7 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 
 		var minOrderElem *list.Element // order that minimize the cost
 		minCost := utils.Inf           // keep the cost of the favourable order
-		bestDeliveryTime := 0
+		bestDeliveryTime := utils.Inf
 
 		current := orders.Front()
 		for j := 0; j < length; j++ {
@@ -262,24 +262,34 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 			newCost, nextDeliveryTime, orderCancelled := computeCost(lastOrder.id, lastOrder.x, order)
 
 			// If costs are equals we choose the order with the lower id
-			if newCost < minCost || (newCost == minCost && nextDeliveryTime < bestDeliveryTime) {
+			//if newCost < minCost || (newCost == minCost && nextDeliveryTime < bestDeliveryTime) {
+			//	minOrderElem = current
+			//	minCost = newCost
+			//	bestDeliveryTime = nextDeliveryTime
+			//
+			//	cancelled = orderCancelled
+			//
+			//} else if newCost == minCost && nextDeliveryTime == bestDeliveryTime &&
+			//	minOrderElem != nil {
+			//
+			//	if order.id < minOrderElem.Value.(*Order).id {
+			//		minOrderElem = current
+			//		minCost = newCost
+			//		bestDeliveryTime = nextDeliveryTime
+			//
+			//		cancelled = orderCancelled
+			//	}
+			//
+			//}
+
+			if bestDeliveryTime == utils.Inf || nextDeliveryTime < bestDeliveryTime ||
+				(nextDeliveryTime == bestDeliveryTime && newCost < minCost) ||
+				(nextDeliveryTime == bestDeliveryTime && newCost < minCost && order.id < minOrderElem.Value.(*Order).id) {
 				minOrderElem = current
 				minCost = newCost
 				bestDeliveryTime = nextDeliveryTime
 
 				cancelled = orderCancelled
-
-			} else if newCost == minCost && nextDeliveryTime == bestDeliveryTime &&
-				minOrderElem != nil {
-
-				if order.id < minOrderElem.Value.(*Order).id {
-					minOrderElem = current
-					minCost = newCost
-					bestDeliveryTime = nextDeliveryTime
-
-					cancelled = orderCancelled
-				}
-
 			}
 
 			current = current.Next()
@@ -291,27 +301,39 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 			newOrder := newOrderElem.Value.(*Order)
 			newCost, nextDeliveryTime, newOrderCancelled := computeCost(lastOrder.id, lastOrder.x, newOrder)
 
-			if newCost < minCost || (newCost == minCost && nextDeliveryTime < bestDeliveryTime) {
+			if bestDeliveryTime == utils.Inf || nextDeliveryTime < bestDeliveryTime ||
+				(nextDeliveryTime == bestDeliveryTime && newCost < minCost) ||
+				(nextDeliveryTime == bestDeliveryTime && newCost < minCost && newOrder.id < minOrderElem.Value.(*Order).id) {
+
 				minOrderElem = newOrderElem
 				minCost = newCost
 				bestDeliveryTime = nextDeliveryTime
 
 				cancelled = newOrderCancelled
 				position = i
-
-			} else if newCost == minCost && nextDeliveryTime == bestDeliveryTime &&
-				minOrderElem != nil {
-
-				if newOrder.id < minOrderElem.Value.(*Order).id {
-					minOrderElem = newOrderElem
-					minCost = newCost
-					bestDeliveryTime = nextDeliveryTime
-
-					cancelled = newOrderCancelled
-					position = i
-				}
-
 			}
+
+			//if newCost < minCost || (newCost == minCost && nextDeliveryTime < bestDeliveryTime) {
+			//	minOrderElem = newOrderElem
+			//	minCost = newCost
+			//	bestDeliveryTime = nextDeliveryTime
+			//
+			//	cancelled = newOrderCancelled
+			//	position = i
+			//
+			//} else if newCost == minCost && nextDeliveryTime == bestDeliveryTime &&
+			//	minOrderElem != nil {
+			//
+			//	if newOrder.id < minOrderElem.Value.(*Order).id {
+			//		minOrderElem = newOrderElem
+			//		minCost = newCost
+			//		bestDeliveryTime = nextDeliveryTime
+			//
+			//		cancelled = newOrderCancelled
+			//		position = i
+			//	}
+			//
+			//}
 
 		}
 
