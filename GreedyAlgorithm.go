@@ -29,8 +29,8 @@ import (
 )
 
 var (
-	ORDER_N = 169 // #Orders if not specified
-	MOVER_N = 29  // #Movers if not specified
+	ORDER_N = 172 // #Orders if not specified
+	MOVER_N = 27  // #Movers if not specified
 )
 
 var DEBUG = true
@@ -237,8 +237,6 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 	// keep the last assigned order
 	var lastOrder = new(Order)
 	var assigned = false
-	var position = -1
-	var forbidden []int
 
 	lastOrder.x = -1
 	lastOrder.id = nOrder + mover
@@ -296,7 +294,7 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 		}
 
 		// Check if the new order can be scheduled
-		if newOrderElem != nil && !assigned && !isForbidden(forbidden, i) {
+		if newOrderElem != nil && !assigned {
 
 			newOrder := newOrderElem.Value.(*Order)
 			newCost, nextDeliveryTime, newOrderCancelled := computeCost(lastOrder.id, lastOrder.x, newOrder)
@@ -310,7 +308,6 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 				bestDeliveryTime = nextDeliveryTime
 
 				cancelled = newOrderCancelled
-				position = i
 			}
 
 			//if newCost < minCost || (newCost == minCost && nextDeliveryTime < bestDeliveryTime) {
@@ -335,34 +332,6 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 			//
 			//}
 
-		}
-
-		if minOrderElem == nil {
-			fmt.Println("Unexpected error")
-			os.Exit(1)
-		}
-
-		if cancelled && minOrderElem != newOrderElem && position != -1 && i != iteration-1 {
-			forbidden = append(forbidden, i)
-
-			cost = 0
-			cancelled = false
-			assigned = false
-
-			// keep the last assigned order
-			lastOrder = new(Order)
-			lastOrder.x = -1
-			lastOrder.id = nOrder + mover
-
-			length = orders.Len()
-			iteration = length
-			if newOrderElem != nil {
-				iteration += 1
-			}
-
-			i = 0
-			position = -1
-			continue
 		}
 
 		// schedule is feasible
@@ -616,7 +585,7 @@ func execute() (SolverResult, time.Duration) {
 
 	elapsed := time.Since(start)
 
-	//validateResults(results)
+	validateResults(results)
 
 	writeResultsToFile(results)
 
@@ -657,19 +626,19 @@ func printFinal(elapsed time.Duration, results SolverResult) {
 	fmt.Printf("#order in (9,12] %d\r\n", results.n3)
 }
 
-//func validateResults(results SolverResult) bool {
-//	if Validate(results, distances, deliveryTimes) {
-//		if DEBUG {
-//			fmt.Printf("The solution is admissible\r\n")
-//		}
-//		return true
-//	}
-//	if DEBUG {
-//		fmt.Printf("The solution is NOT admissible\r\n")
-//	}
-//	return false
-//
-//}
+func validateResults(results SolverResult) bool {
+	if Validate(results, distances, deliveryTimes) {
+		if DEBUG {
+			fmt.Printf("The solution is admissible\r\n")
+		}
+		return true
+	}
+	if DEBUG {
+		fmt.Printf("The solution is NOT admissible\r\n")
+	}
+	return false
+
+}
 
 func createOutputPath() string {
 	begin := strings.Index(utils.DeliveryTimeFilename, "ist")
