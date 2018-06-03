@@ -188,7 +188,7 @@ func constraint7(res SolverResult, dist Distances, del DeliveryTimeVector) bool 
 	for i := 0; i < res.nOrder; i++ {
 		val := res.x[i]
 		//fmt.Printf("xi = %d, ti = %d\n",val , del[i] )
-		if val < del[i]-15 && res.w[i] == 0 {
+		if val < del[i]-3 && res.w[i] == 0 {
 			if DEBUG {
 				printFailed()
 			}
@@ -246,9 +246,10 @@ func constraint10(res SolverResult, dist Distances, del DeliveryTimeVector) bool
 		printInitMess(10)
 	}
 	for i := 0; i < res.nOrder; i++ {
-		if B*int(res.z[i]) < res.x[i]-del[i]-15 {
+		if B*int(res.z[i]) < res.x[i]-del[i]-3 {
 			if DEBUG {
-				fmt.Print(res.z[i], res.x[i]-del[i])
+				fmt.Printf("[id:%d t:%d x:%d]", i, del[i], res.x[i])
+				fmt.Print(res.z[i], res.x[i]-del[i]-3)
 				printFailed()
 			}
 			return false
@@ -266,9 +267,9 @@ func constraint11(res SolverResult, dist Distances, del DeliveryTimeVector) bool
 		printInitMess(11)
 	}
 	for i := 0; i < res.nOrder; i++ {
-		if B*int(res.z1[i]) < res.x[i]-del[i]-30 {
+		if B*int(res.z1[i]) < res.x[i]-del[i]-6 {
 			if DEBUG {
-				fmt.Print(res.z1[i], res.x[i]-del[i]-30)
+				fmt.Print(res.z1[i], res.x[i]-del[i]-6)
 				printFailed()
 			}
 			return false
@@ -286,7 +287,7 @@ func constraint12(res SolverResult, dist Distances, del DeliveryTimeVector) bool
 		printInitMess(12)
 	}
 	for i := 0; i < res.nOrder; i++ {
-		if B*int(res.z2[i]) < res.x[i]-del[i]-45 {
+		if B*int(res.z2[i]) < res.x[i]-del[i]-9 {
 			if DEBUG {
 				printFailed()
 			}
