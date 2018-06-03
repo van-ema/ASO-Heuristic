@@ -29,7 +29,7 @@ import (
 )
 
 var (
-	ORDER_N = 172 // #Orders if not specified
+	ORDER_N = 184 // #Orders if not specified
 	MOVER_N = 27  // #Movers if not specified
 )
 
@@ -291,6 +291,10 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 
 		}
 
+		if cancelled {
+			return utils.Inf, true
+		}
+
 		// schedule is feasible
 		cost += minCost
 		minOrder := minOrderElem.Value.(*Order)
@@ -528,7 +532,7 @@ func getUnfeasibleOrdersPairs(orders *list.List) [][]uint8 {
 	return notFeasiblePair
 }
 
-func execute() (SolverResult, time.Duration) {
+func execute() (SolverResult, time.Duration, bool) {
 
 	//distances = utils.CreateOrderMatrix(nOrder, nMover)
 	//deliveryTimes = utils.CreateDeliveryTimeVector(nOrder)
@@ -542,7 +546,7 @@ func execute() (SolverResult, time.Duration) {
 
 	elapsed := time.Since(start)
 
-	validateResults(results)
+	var valid = validateResults(results)
 
 	writeResultsToFile(results)
 
@@ -550,7 +554,7 @@ func execute() (SolverResult, time.Duration) {
 		printFinal(elapsed, results)
 	}
 
-	return results, elapsed
+	return results, elapsed, valid
 }
 
 func validateInput() {

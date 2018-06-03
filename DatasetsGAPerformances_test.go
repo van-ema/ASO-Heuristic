@@ -6,17 +6,18 @@ import (
 	"orderSchedulingAlgorithm/utils"
 	"fmt"
 	"testing"
+	"os"
 )
 
 const (
-	DELIVERY_TIME_PATH = "datasets_alpha/deliveryTime_ist"
-	DISTANCE_MATRIX_PATH = "datasets_alpha/distanceMatrix_ist"
-	CSV = ".csv"
-	DATASETS = 35
+	DELIVERY_TIME_PATH       = "datasets/deliveryTime_ist"
+	DISTANCE_MATRIX_PATH     = "datasets/distanceMatrix_ist"
+	CSV                      = ".csv"
+	DATASETS                 = 35
 	TABLE_MAXIMIZE_FILE_PATH = "results/table_maximize_policy.csv"
 	TABLE_MINIMIZE_FILE_PATH = "results/table_minimize_policy.csv"
-	TIME_MINIMIZE_FILE_PATH = "results/times_minimize.csv"
-	TIME_MAXIMIZE_FILE_PATH = "results/times_maximize.csv"
+	TIME_MINIMIZE_FILE_PATH  = "results/times_minimize.csv"
+	TIME_MAXIMIZE_FILE_PATH  = "results/times_maximize.csv"
 )
 
 func BenchmarkDatasetsGreedySolver(b *testing.B) {
@@ -28,62 +29,67 @@ func BenchmarkDatasetsGreedySolver(b *testing.B) {
 
 	for i := 2; i <= DATASETS; i++ {
 
-		utils.DeliveryTimeFilename = DELIVERY_TIME_PATH + strconv.Itoa(i)+CSV
-		utils.DistanceMatrixFilename = DISTANCE_MATRIX_PATH + strconv.Itoa(i)+CSV
+		utils.DeliveryTimeFilename = DELIVERY_TIME_PATH + strconv.Itoa(i) + CSV
+		utils.DistanceMatrixFilename = DISTANCE_MATRIX_PATH + strconv.Itoa(i) + CSV
 
 		execute()
 		N := nMover
 
-		for n:=25; n<=N; n++ {
+		for n := 25; n <= N; n++ {
 
-				moverPolicy = MINIMIZE_ACTIVE_MOVERS
+			moverPolicy = MINIMIZE_ACTIVE_MOVERS
 
-			test:
+		test:
 
-				CANC_TOT := 0
-				COST_TOT := 0
-				Z_TOT := 0
-				Z1_TOT:= 0
-				Z2_TOT := 0
-				var TIME_TOT time.Duration = 0
+			CANC_TOT := 0
+			COST_TOT := 0
+			Z_TOT := 0
+			Z1_TOT := 0
+			Z2_TOT := 0
+			var TIME_TOT time.Duration = 0
 
-				nMover = n
-				results, elapsed := execute()
-				CANC_TOT += results.nCancelled
-				COST_TOT += results.totalCost
-				TIME_TOT += elapsed
-				Z_TOT += results.n1
-				Z1_TOT += results.n2
-				Z2_TOT += results.n3
+			nMover = n
+			results, elapsed, valid := execute()
 
-				switch moverPolicy {
-				case MINIMIZE_ACTIVE_MOVERS:
-					times_min = append(times_min, TIME_TOT)
-					res_min = append(res_min, []int{i, n, nOrder, COST_TOT , Z_TOT  , Z1_TOT , Z2_TOT, CANC_TOT})
-				case MAXIMIZE_ACTIVE_MOVERS:
-					times_max = append(times_max, TIME_TOT)
-					res_max = append(res_max, []int{i, n, nOrder, COST_TOT, Z_TOT , Z1_TOT, Z2_TOT, CANC_TOT})
-				}
+			CANC_TOT += results.nCancelled
+			COST_TOT += results.totalCost
+			TIME_TOT += elapsed
+			Z_TOT += results.n1
+			Z1_TOT += results.n2
+			Z2_TOT += results.n3
 
-				printTimes(n, nOrder-CANC_TOT, TIME_TOT, COST_TOT, CANC_TOT, i)
+			switch moverPolicy {
+			case MINIMIZE_ACTIVE_MOVERS:
+				times_min = append(times_min, TIME_TOT)
+				res_min = append(res_min, []int{i, n, nOrder, COST_TOT, Z_TOT, Z1_TOT, Z2_TOT, CANC_TOT})
+			case MAXIMIZE_ACTIVE_MOVERS:
+				times_max = append(times_max, TIME_TOT)
+				res_max = append(res_max, []int{i, n, nOrder, COST_TOT, Z_TOT, Z1_TOT, Z2_TOT, CANC_TOT})
+			}
 
-				if moverPolicy == MAXIMIZE_ACTIVE_MOVERS {
-					continue
-				}
+			printTimes(n, nOrder-CANC_TOT, TIME_TOT, COST_TOT, CANC_TOT, i)
+			if !valid {
+				print("Solution does NOT pass validation.\n")
+				os.Exit(0)
+			}
 
-				moverPolicy = MAXIMIZE_ACTIVE_MOVERS
+			if moverPolicy == MAXIMIZE_ACTIVE_MOVERS {
+				continue
+			}
 
-				goto test
+			moverPolicy = MAXIMIZE_ACTIVE_MOVERS
+
+			goto test
 		}
 
 		nMover = -1
 		nOrder = -1
 
 	}
-	utils.WriteResultsTable(TABLE_MAXIMIZE_FILE_PATH, res_max, []string{"id shift","num moover","num ordini","fo","sumz","sumz1", "sumz2","sumw"})
-	utils.WriteResultsTable(TABLE_MINIMIZE_FILE_PATH, res_min, []string{"id shift","num moover","num ordini","fo","sumz","sumz1", "sumz2","sumw"})
-	utils.WriteResultsTimes(TIME_MINIMIZE_FILE_PATH, DATASETS, times_min, []string{"id shift","exec time"})
-	utils.WriteResultsTimes(TIME_MAXIMIZE_FILE_PATH, DATASETS, times_max, []string{"id shift","exec time"})
+	utils.WriteResultsTable(TABLE_MAXIMIZE_FILE_PATH, res_max, []string{"id shift", "num moover", "num ordini", "fo", "sumz", "sumz1", "sumz2", "sumw"})
+	utils.WriteResultsTable(TABLE_MINIMIZE_FILE_PATH, res_min, []string{"id shift", "num moover", "num ordini", "fo", "sumz", "sumz1", "sumz2", "sumw"})
+	utils.WriteResultsTimes(TIME_MINIMIZE_FILE_PATH, DATASETS, times_min, []string{"id shift", "exec time"})
+	utils.WriteResultsTimes(TIME_MAXIMIZE_FILE_PATH, DATASETS, times_max, []string{"id shift", "exec time"})
 }
 
 func printTimes(n int, o int, t time.Duration, cost int, canc int, ist int) {
@@ -108,7 +114,7 @@ func printTimes(n int, o int, t time.Duration, cost int, canc int, ist int) {
 	for i := 0; i < 20; i++ {
 		header += "-"
 	}
-	header+= "\n\t\t"
+	header += "\n\t\t"
 	fmt.Printf(header)
 
 	fmt.Printf(

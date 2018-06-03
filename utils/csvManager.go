@@ -27,8 +27,8 @@ import (
 )
 
 const (
-	DELIVERY_TIME_FILENAME = "deliveryTime_ist3.csv"
-	DISTANCE_MAT_FILENAME  = "distanceMatrix_ist3.csv"
+	DELIVERY_TIME_FILENAME = "deliveryTime_ist23.csv"
+	DISTANCE_MAT_FILENAME  = "distanceMatrix_ist23.csv"
 )
 
 var (

@@ -46,7 +46,7 @@ func BenchmarkGreedySolver(b *testing.B) {
 			var TIME_TOT time.Duration = 0
 
 			nMover = N
-			results, elapsed := execute()
+			results, elapsed, _ := execute()
 			CANC_TOT += results.nCancelled
 			COST_TOT += results.totalCost
 			TIME_TOT += elapsed
