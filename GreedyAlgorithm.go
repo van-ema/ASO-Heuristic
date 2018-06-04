@@ -159,9 +159,9 @@ func GreedySolver(nOrder, nMover int) SolverResult {
 			if cost < minCost {
 				minCost = cost
 				bestMover = mover
-				if DEBUG {
-					fmt.Println(bestMover)
-				}
+				//if DEBUG {
+				//	fmt.Println(bestMover)
+				//}
 				cancelledOrderMin = cancelledOrderPresent
 			}
 		}
@@ -212,9 +212,9 @@ func GreedySolver(nOrder, nMover int) SolverResult {
 	}
 
 	for mover := 0; mover < nMover; mover++ {
-		if DEBUG {
-			fmt.Printf("Mover-%d", mover)
-		}
+		//if DEBUG {
+		//	fmt.Printf("Mover-%d", mover)
+		//}
 		for e := orderPartitions[mover].Front(); e != nil; e = e.Next() {
 			order := e.Value.(*Order)
 			if DEBUG {
@@ -260,8 +260,8 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 			newCost, nextDeliveryTime, orderCancelled := computeCost(lastOrder.id, lastOrder.x, order)
 
 			if bestDeliveryTime == utils.Inf || nextDeliveryTime < bestDeliveryTime ||
-				(nextDeliveryTime == bestDeliveryTime && newCost < minCost) ||
-				(nextDeliveryTime == bestDeliveryTime && newCost == minCost && order.id < minOrderElem.Value.(*Order).id) {
+				//(nextDeliveryTime == bestDeliveryTime && newCost < minCost) ||
+				(nextDeliveryTime == bestDeliveryTime && order.id < minOrderElem.Value.(*Order).id) {
 				minOrderElem = current
 				minCost = newCost
 				bestDeliveryTime = nextDeliveryTime
@@ -279,8 +279,8 @@ func SingleMoverSchedulingOrders(mover int, orders *list.List, newOrderElem *lis
 			newCost, nextDeliveryTime, newOrderCancelled := computeCost(lastOrder.id, lastOrder.x, newOrder)
 
 			if bestDeliveryTime == utils.Inf || nextDeliveryTime < bestDeliveryTime ||
-				(nextDeliveryTime == bestDeliveryTime && newCost < minCost) ||
-				(nextDeliveryTime == bestDeliveryTime && newCost == minCost && newOrder.id < minOrderElem.Value.(*Order).id) {
+				//(nextDeliveryTime == bestDeliveryTime && newCost < minCost) ||
+				(nextDeliveryTime == bestDeliveryTime && newOrder.id < minOrderElem.Value.(*Order).id) {
 
 				minOrderElem = newOrderElem
 				minCost = newCost

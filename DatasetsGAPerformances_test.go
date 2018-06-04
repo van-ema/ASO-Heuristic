@@ -27,7 +27,13 @@ func BenchmarkDatasetsGreedySolver(b *testing.B) {
 	var times_min []time.Duration
 	var times_max []time.Duration
 
+	var totCostMax []int
+	var totCancMax []int
+
 	for i := 2; i <= DATASETS; i++ {
+
+		var costMax = 0
+		var cancMax = 0
 
 		utils.DeliveryTimeFilename = DELIVERY_TIME_PATH + strconv.Itoa(i) + CSV
 		utils.DistanceMatrixFilename = DISTANCE_MATRIX_PATH + strconv.Itoa(i) + CSV
@@ -63,6 +69,8 @@ func BenchmarkDatasetsGreedySolver(b *testing.B) {
 				times_min = append(times_min, TIME_TOT)
 				res_min = append(res_min, []int{i, n, nOrder, COST_TOT, Z_TOT, Z1_TOT, Z2_TOT, CANC_TOT})
 			case MAXIMIZE_ACTIVE_MOVERS:
+				costMax += COST_TOT
+				cancMax += CANC_TOT
 				times_max = append(times_max, TIME_TOT)
 				res_max = append(res_max, []int{i, n, nOrder, COST_TOT, Z_TOT, Z1_TOT, Z2_TOT, CANC_TOT})
 			}
@@ -82,14 +90,30 @@ func BenchmarkDatasetsGreedySolver(b *testing.B) {
 			goto test
 		}
 
+		totCancMax = append(totCancMax, cancMax)
+		totCostMax = append(totCostMax, costMax)
+
 		nMover = -1
 		nOrder = -1
 
 	}
+
+	var avgCancMax = 0
+	var avgCostMax = 0
+	for i := 0; i < len(totCancMax); i++ {
+		avgCancMax += totCancMax[i]
+		avgCostMax += totCostMax[i]
+	}
+
 	utils.WriteResultsTable(TABLE_MAXIMIZE_FILE_PATH, res_max, []string{"id shift", "num moover", "num ordini", "fo", "sumz", "sumz1", "sumz2", "sumw"})
 	utils.WriteResultsTable(TABLE_MINIMIZE_FILE_PATH, res_min, []string{"id shift", "num moover", "num ordini", "fo", "sumz", "sumz1", "sumz2", "sumw"})
 	utils.WriteResultsTimes(TIME_MINIMIZE_FILE_PATH, DATASETS, times_min, []string{"id shift", "exec time"})
 	utils.WriteResultsTimes(TIME_MAXIMIZE_FILE_PATH, DATASETS, times_max, []string{"id shift", "exec time"})
+
+	fmt.Printf("\n\n")
+	fmt.Printf("average cost : %f", float64(avgCostMax)/float64(len(totCostMax)))
+	fmt.Printf("average canc : %f", float64(avgCancMax)/float64(len(totCancMax)))
+	fmt.Printf("\n\n")
 }
 
 func printTimes(n int, o int, t time.Duration, cost int, canc int, ist int) {
